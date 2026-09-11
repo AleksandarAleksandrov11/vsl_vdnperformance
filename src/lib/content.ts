@@ -166,7 +166,7 @@ export type Pregunta = { p: string; r: string };
 export const FAQ: Pregunta[] = [
   {
     p: '¿Es peligroso para el motor?',
-    r: 'No, si está bien hecho. Trabajamos dentro de los márgenes de seguridad y el mapa se ajusta a tu coche.',
+    r: 'No. Trabajamos dentro de los márgenes de seguridad y el mapa se ajusta a tu coche.',
   },
   { p: '¿Es reversible?', r: 'Totalmente. Guardamos siempre tu mapa original.' },
   { p: '¿Cuánto se tarda?', r: 'En una mañana lo tienes.' },
