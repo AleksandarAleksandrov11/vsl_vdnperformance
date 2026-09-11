@@ -2,66 +2,66 @@
 
 import { useState } from 'react';
 import { FAQ } from '@/lib/content';
-import { Chevron } from './Servicios';
-import { Eyebrow, H2, Lead, Reveal, Section } from './ui';
+import { H2_CLASS, Section, Titular } from './kit';
 
+/**
+ * Acordeón de líneas finas, sin tarjetas ni cajas: sólo una regla horizontal
+ * entre preguntas. De apertura única, porque con dos respuestas abiertas a la
+ * vez en móvil la segunda se va fuera de pantalla.
+ */
 export function Faq() {
-  /* Acordeón de apertura única: dos preguntas abiertas a la vez obligan a
-     buscar, y en móvil dejan la respuesta fuera de pantalla. */
-  const [abierta, setAbierta] = useState<number | null>(0);
+  const [abierta, setAbierta] = useState<number | null>(null);
 
   return (
-    <Section alt labelledBy="faq-t" defer>
-      <div className="shell gutter">
-        <Reveal className="max-w-[38rem]">
-          <Eyebrow>Dudas razonables</Eyebrow>
-          <H2 id="faq-t">Preguntas frecuentes</H2>
-          <Lead>Lo que nos preguntan casi todos los días, contestado sin rodeos.</Lead>
-        </Reveal>
+    <Section id="dudas" labelledBy="faq-t">
+      <div className="shell">
+        <Titular id="faq-t" lineas={['Dudas.']} className={H2_CLASS} />
 
-        <div className="mx-auto mt-9 max-w-3xl">
-          <ul className="space-y-2.5">
-            {FAQ.map((f, i) => {
-              const abierto = abierta === i;
-              return (
-                <li
-                  key={f.p}
-                  className={`overflow-hidden rounded-2xl border bg-[#16161c] transition-colors duration-300 ${
-                    abierto ? 'border-blue-500/40' : 'border-[#25262e]'
-                  }`}
-                >
-                  <h3>
-                    <button
-                      type="button"
-                      onClick={() => setAbierta(abierto ? null : i)}
-                      aria-expanded={abierto}
-                      aria-controls={`faq-r-${i}`}
-                      id={`faq-p-${i}`}
-                      className="tap flex w-full items-center justify-between gap-4 px-4 py-3.5 text-left sm:px-5"
-                    >
-                      <span className="text-[0.9375rem] leading-snug tracking-wide text-chalk sm:text-base">
-                        {f.p}
-                      </span>
-                      <Chevron abierto={abierto} />
-                    </button>
-                  </h3>
-                  <div
-                    id={`faq-r-${i}`}
-                    role="region"
-                    aria-labelledby={`faq-p-${i}`}
-                    hidden={!abierto}
-                    className="px-4 pb-4 sm:px-5 sm:pb-5"
+        <ul className="mt-12 border-t border-hair lg:mt-16">
+          {FAQ.map((f, i) => {
+            const abierto = abierta === i;
+            return (
+              <li key={f.p} className="border-b border-hair">
+                <h3>
+                  <button
+                    type="button"
+                    onClick={() => setAbierta(abierto ? null : i)}
+                    aria-expanded={abierto}
+                    aria-controls={`faq-${i}`}
+                    id={`faq-b-${i}`}
+                    className="flex w-full items-center justify-between gap-6 py-6 text-left"
                   >
-                    <p className="border-t border-[#22232b] pt-3 text-[0.9375rem] leading-relaxed text-mist">
-                      {f.r}
-                    </p>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+                    <span className="text-[1.0625rem] font-medium sm:text-[1.25rem]">{f.p}</span>
+                    <Mas abierto={abierto} />
+                  </button>
+                </h3>
+                <div
+                  id={`faq-${i}`}
+                  role="region"
+                  aria-labelledby={`faq-b-${i}`}
+                  hidden={!abierto}
+                  className="pb-7"
+                >
+                  <p className="max-w-[56ch] text-[0.9375rem] leading-relaxed text-muted">{f.r}</p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </Section>
+  );
+}
+
+/** Cruz que gira 45° para volverse un menos. Sólo transform. */
+function Mas({ abierto }: { abierto: boolean }) {
+  return (
+    <span aria-hidden className="relative block h-4 w-4 shrink-0">
+      <span className="absolute top-1/2 left-0 h-px w-4 -translate-y-1/2 bg-muted" />
+      <span
+        className="absolute top-1/2 left-0 h-px w-4 -translate-y-1/2 bg-muted transition-transform duration-500"
+        style={{ transform: `translateY(-50%) rotate(${abierto ? 0 : 90}deg)` }}
+      />
+    </span>
   );
 }

@@ -132,15 +132,15 @@ export default function PoliticaCookies() {
 
 function Tabla({ filas }: { filas: [string, string, string, string][] }) {
   return (
-    <div className="mt-3 overflow-x-auto">
-      <table className="w-full min-w-[36rem] border-collapse overflow-hidden rounded-xl text-left">
+    <div className="mt-6 overflow-x-auto">
+      <table className="w-full min-w-[34rem] border-collapse text-left">
         <thead>
-          <tr className="bg-[#1a1a21]">
+          <tr>
             {['Nombre', 'Titular', 'Para qué sirve', 'Duración'].map((h) => (
               <th
                 key={h}
                 scope="col"
-                className="border-b border-[#25262e] px-3 py-2.5 text-[0.75rem] font-semibold tracking-wide text-smoke uppercase"
+                className="border-b border-hair pb-3 text-[0.75rem] font-medium tracking-[0.1em] text-muted uppercase"
               >
                 {h}
               </th>
@@ -149,19 +149,17 @@ function Tabla({ filas }: { filas: [string, string, string, string][] }) {
         </thead>
         <tbody>
           {filas.map((f) => (
-            <tr key={f[0]} className="bg-[#15151b]">
-              <td className="border-b border-[#22232b] px-3 py-3 align-top font-mono text-[0.8125rem] text-blue-300">
-                {f[0]}
-              </td>
-              <td className="border-b border-[#22232b] px-3 py-3 align-top text-[0.8125rem] text-mist">
-                {f[1]}
-              </td>
-              <td className="border-b border-[#22232b] px-3 py-3 align-top text-[0.8125rem] text-mist">
-                {f[2]}
-              </td>
-              <td className="border-b border-[#22232b] px-3 py-3 align-top text-[0.8125rem] text-mist">
-                {f[3]}
-              </td>
+            <tr key={f[0]}>
+              {f.map((celda, i) => (
+                <td
+                  key={celda}
+                  className={`border-b border-hair py-4 pr-4 align-top text-[0.8125rem] ${
+                    i === 0 ? 'font-mono text-ink' : 'text-muted'
+                  }`}
+                >
+                  {celda}
+                </td>
+              ))}
             </tr>
           ))}
         </tbody>

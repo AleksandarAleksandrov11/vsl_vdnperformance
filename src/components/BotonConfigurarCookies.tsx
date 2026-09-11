@@ -8,7 +8,7 @@ export function BotonConfigurarCookies() {
     <button
       type="button"
       onClick={abrirPanelCookies}
-      className="tap inline-flex items-center justify-center rounded-xl border border-[#2f3038] bg-white/[0.05] px-5 font-semibold text-chalk transition-colors hover:border-blue-400/60"
+      className="mt-6 inline-flex h-12 items-center rounded-full border border-hair px-6 text-[0.875rem] font-medium text-ink transition-colors duration-300 hover:border-white/30"
     >
       Configurar cookies
     </button>

@@ -67,7 +67,7 @@ async function main() {
   ok(pixelDespues, 'Al aceptar, el píxel se carga en ese momento');
 
   /* --- El CTA del hero baja al formulario --- */
-  await page.getByRole('link', { name: /Calcula cuánto gana tu coche/ }).click();
+  await page.getByRole('link', { name: /Calcular mi coche/ }).first().click();
   await page.waitForTimeout(900);
   const enVista = await page.evaluate(() => {
     const r = document.getElementById('presupuesto').getBoundingClientRect();
@@ -77,7 +77,7 @@ async function main() {
 
   /* --- Paso 1: validación y avance --- */
   await page.locator('#f-modelo').fill('A');
-  await page.getByRole('button', { name: 'Siguiente' }).click();
+  await page.getByRole('button', { name: 'Continuar' }).click();
   await page.waitForTimeout(300);
   ok(
     (await page.locator("#presupuesto [role=\"alert\"]").innerText()).includes('marca'),
@@ -89,8 +89,8 @@ async function main() {
   await page.waitForTimeout(500);
   ok(await page.locator('#f-anio').isVisible(), 'Enter pasa a la pregunta siguiente');
   ok(
-    (await page.locator('text=/\\bde 5\\b/').innerText()).startsWith('2'),
-    'El cuentarrevoluciones marca 2 de 5',
+    (await page.locator('#presupuesto .num').first().innerText()).startsWith('2'),
+    'La barra de progreso marca el paso 2 de 5',
   );
 
   /* --- Paso 2: rango de años --- */
@@ -134,7 +134,7 @@ async function main() {
   ok(await page.locator('#f-nombre').isVisible(), 'Paso 5 pide nombre y teléfono juntos');
   await page.locator('#f-nombre').fill('Diego');
   await page.locator('#f-telefono').fill('123');
-  await page.getByRole('button', { name: 'Quiero mi presupuesto gratis' }).click();
+  await page.getByRole('button', { name: 'Recibir mi precio' }).click();
   await page.waitForTimeout(300);
   ok(
     (await page.locator("#presupuesto [role=\"alert\"]").innerText()).includes('9 cifras'),
@@ -143,11 +143,11 @@ async function main() {
 
   // Con espacios y prefijo +34, como lo escribe mucha gente.
   await page.locator('#f-telefono').fill('+34 611 22 33 44');
-  await page.getByRole('button', { name: 'Quiero mi presupuesto gratis' }).click();
+  await page.getByRole('button', { name: 'Recibir mi precio' }).click();
   await page.waitForTimeout(1400);
 
   /* --- Pantalla final --- */
-  const final = await page.locator('text=/¡Listo, Diego!/').isVisible();
+  const final = await page.locator('text=/Listo, Diego\\./').isVisible();
   ok(final, 'Se muestra la pantalla final con el nombre');
 
   /* --- Lo que se manda a la hoja --- */

@@ -1,40 +1,37 @@
 @import 'tailwindcss';
 
 /* ==========================================================================
-   VDN Performance — sistema visual
-   Azules sacados del degradado real de la "N" del logo (#0042BA → #0066EA).
-   Titulares con degradado plateado, como la V y la D.
+   VDN Performance — sistema de diseño
+   Negro, espacio y un solo azul. El azul es el de la "N" del logo y aparece
+   únicamente en: botón principal, pestaña activa, barra de progreso del
+   formulario y la curva del gráfico. En ningún otro sitio.
    ========================================================================== */
 
 @theme {
-  /* --- Fondos --- */
-  --color-ink: #0a0a0c;
-  --color-ink-2: #111114;
-  --color-ink-3: #16161b;
-  --color-line: #26262e;
-
-  /* --- Azul de marca --- */
-  --color-blue-deep: #0037a8;
-  --color-blue-700: #0047cc;
-  --color-blue-600: #0a55e0;
-  --color-blue-500: #1e6bf0;
-  --color-blue-400: #2e7bff;
-  --color-blue-300: #5aa0ff;
-  --color-blue-200: #9cc4ff;
+  /* --- Superficies --- */
+  --color-void: #050505;
+  --color-surface: #0e0e10;
+  --color-paper: #f4f4f1;
 
   /* --- Texto --- */
-  --color-chalk: #f4f5f7;
-  --color-mist: #b6b9c2;
-  --color-smoke: #8a8d97;
+  --color-ink: #f5f5f2;
+  --color-muted: #8c8c91;
+  --color-ink-dark: #0a0a0a;
+  --color-muted-dark: #5c5c60;
 
-  /* --- Tipografías (las inyecta next/font) --- */
-  --font-display: var(--font-chakra), 'Segoe UI', system-ui, sans-serif;
-  --font-sans: var(--font-inter), system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* --- Bordes --- */
+  --color-hair: rgba(255, 255, 255, 0.08);
+  --color-hair-dark: rgba(0, 0, 0, 0.08);
 
-  /* --- Easing --- */
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  /* --- Acento único --- */
+  --color-accent: #1f5cff;
+  --color-accent-hi: #4b7dff;
 
-  /* --- Breakpoint extra para pantallas muy estrechas (360 px) --- */
+  --font-sans: var(--font-inter-tight), system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Curva única para todo el movimiento de la página. */
+  --ease-brand: cubic-bezier(0.16, 1, 0.3, 1);
+
   --breakpoint-xs: 23.5rem;
 }
 
@@ -52,38 +49,35 @@
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
-    /* La cabecera fija mide 60 px: los anclajes no deben quedar debajo. */
-    scroll-padding-top: 4.5rem;
-    background-color: var(--color-ink);
+    scroll-padding-top: 5rem;
+    background-color: var(--color-void);
   }
 
   body {
     margin: 0;
-    background-color: var(--color-ink);
-    color: var(--color-chalk);
+    background-color: var(--color-void);
+    color: var(--color-ink);
     font-family: var(--font-sans);
     font-size: 1rem;
-    line-height: 1.6;
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-    /* Regla dura del brief: nunca scroll horizontal. */
     overflow-x: clip;
   }
 
+  /* Titulares: un solo peso, un solo tracking, una sola interlínea.
+     Los tamaños los pone cada sitio con clamp(). */
   h1,
   h2,
-  h3,
-  h4 {
-    font-family: var(--font-display);
-    font-weight: 700;
-    line-height: 1.02;
-    letter-spacing: -0.01em;
-    text-transform: uppercase;
-    text-wrap: balance;
+  h3 {
     margin: 0;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.04;
+    text-wrap: balance;
   }
 
   p {
+    margin: 0;
     text-wrap: pretty;
   }
 
@@ -97,27 +91,14 @@
     color: inherit;
   }
 
-  /* El texto de ejemplo sí puede ir más pequeño: iOS mira el font-size del
-     campo, no el del placeholder. Así cabe entero en una pantalla de 360. */
-  input::placeholder {
-    font-size: 0.875rem;
-  }
-
-  @media (min-width: 25rem) {
-    input::placeholder {
-      font-size: 0.9375rem;
-    }
-  }
-
-  /* Foco visible y con el azul de marca, en todo lo que se pueda enfocar. */
   :focus-visible {
-    outline: 2px solid var(--color-blue-400);
+    outline: 2px solid var(--color-accent);
     outline-offset: 3px;
     border-radius: 4px;
   }
 
   ::selection {
-    background: var(--color-blue-600);
+    background: var(--color-accent);
     color: #fff;
   }
 
@@ -127,123 +108,54 @@
     display: block;
     max-width: 100%;
   }
-
-  /* Scrollbar discreta en los carruseles de escritorio. */
-  .scrollbar-none {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  .scrollbar-none::-webkit-scrollbar {
-    display: none;
-  }
 }
 
 /* ==========================================================================
-   Utilidades de marca
+   Utilidades de estructura
    ========================================================================== */
 
 @layer utilities {
-  /* Titular metálico: blanco arriba, plata abajo, como la V y la D del logo. */
-  .text-metal {
-    background-image: linear-gradient(
-      177deg,
-      #ffffff 6%,
-      #eceef2 28%,
-      #b9bcc4 56%,
-      #9a9ca3 78%,
-      #d7d9de 100%
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    /* Si el degradado no pinta (navegadores viejos), queda texto claro legible. */
-    -webkit-text-fill-color: transparent;
+  /* Ancho máximo de contenido y márgenes laterales. */
+  .shell {
+    width: 100%;
+    max-width: 75rem; /* 1200 px */
+    margin-inline: auto;
+    padding-inline: 1.25rem; /* 20 px en móvil */
   }
 
-  @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
-    .text-metal {
-      color: var(--color-chalk);
-      -webkit-text-fill-color: currentColor;
+  @media (min-width: 48rem) {
+    .shell {
+      padding-inline: 2.5rem;
     }
   }
 
-  .text-blue-grad {
-    background-image: linear-gradient(100deg, #2e7bff 0%, #5aa0ff 55%, #2e7bff 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    -webkit-text-fill-color: transparent;
+  /* Ritmo vertical único: 96 px en móvil, 160 px en escritorio. */
+  .section-y {
+    padding-block: 6rem;
   }
 
-  /* Degradado de los botones principales. Contraste con blanco > 4.5:1. */
-  .bg-blue-grad {
-    background-image: linear-gradient(135deg, #0047cc 0%, #1e6bf0 100%);
+  @media (min-width: 64rem) {
+    .section-y {
+      padding-block: 10rem;
+    }
   }
 
-  .bg-blue-grad-soft {
-    background-image: linear-gradient(135deg, rgba(0, 71, 204, 0.16), rgba(46, 123, 255, 0.08));
+  /* Columna de lectura de las páginas legales. */
+  .prose-col {
+    max-width: 42.5rem; /* 680 px */
   }
 
-  /* Rejilla técnica del hero. Muy sutil, sólo se intuye. */
-  .bg-tech-grid {
-    background-image:
-      linear-gradient(to right, rgba(122, 150, 200, 0.075) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(122, 150, 200, 0.075) 1px, transparent 1px);
-    background-size: 42px 42px;
+  .radius {
+    border-radius: 20px;
   }
 
-  /* Línea fina azul que separa secciones. */
-  .rule-blue {
-    background-image: linear-gradient(
-      90deg,
-      transparent,
-      rgba(46, 123, 255, 0.55) 22%,
-      rgba(46, 123, 255, 0.85) 50%,
-      rgba(46, 123, 255, 0.55) 78%,
-      transparent
-    );
-  }
-
-  .glow-blue {
-    box-shadow:
-      0 0 0 1px rgba(46, 123, 255, 0.28),
-      0 10px 44px -14px rgba(30, 107, 240, 0.6);
-  }
-
-  .glow-blue-strong {
-    box-shadow:
-      0 0 0 1px rgba(46, 123, 255, 0.4),
-      0 14px 48px -12px rgba(30, 107, 240, 0.75);
-  }
-
-  /* Márgenes laterales: nunca menos de 20 px, aunque la pantalla sea de 360. */
-  .gutter {
-    padding-inline: clamp(1.25rem, 5vw, 2.5rem);
-  }
-
-  .shell {
-    width: 100%;
-    max-width: 76rem;
-    margin-inline: auto;
-  }
-
-  /* Respeta el notch y la barra de gestos del iPhone. */
-  .safe-b {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-  .safe-x {
-    padding-left: env(safe-area-inset-left, 0px);
-    padding-right: env(safe-area-inset-right, 0px);
-  }
-
-  /* El contenido del hero se sube por encima del aviso de cookies.
-     Con transform y no con padding: mover con transform no cuenta como salto
-     de contenido, así que el CLS se queda a cero. El tope de 7rem evita que en
-     una pantalla baja el texto se meta debajo de la cabecera, y por debajo de
-     700 px de alto directamente no se mueve. */
+  /* El contenido del hero se levanta por encima del aviso de cookies.
+     Con transform y no con padding: mover con transform no cuenta como salto de
+     contenido, así que el CLS se queda en cero. El tope de 6rem evita que en una
+     pantalla baja el texto se meta debajo de la barra superior. */
   .hero-lift {
-    transform: translate3d(0, calc(-1 * min(var(--consent-h, 0px), 7rem)), 0);
-    transition: transform 320ms var(--ease-out-expo);
+    transform: translate3d(0, calc(-1 * min(var(--consent-h, 0px), 6rem)), 0);
+    transition: transform 400ms var(--ease-brand);
   }
 
   @media (max-height: 43.75rem) {
@@ -252,181 +164,171 @@
     }
   }
 
-  /* Secciones que quedan muy por debajo del pliegue: el navegador se salta su
-     estilo, maquetación y pintado hasta que se acercan a la pantalla. Es lo que
-     más baja el trabajo del hilo principal en la carga, que en un móvil de gama
-     media es justo el cuello de botella.
-     `auto` en contain-intrinsic-size hace que, una vez medida de verdad, se
-     recuerde su altura: el scroll no pega tirones al volver a pasar por ella. */
-  .defer-paint {
-    content-visibility: auto;
-    contain-intrinsic-size: auto 900px;
-  }
-
-  /* Altura táctil mínima del brief. */
-  .tap {
-    min-height: 3rem;
+  .safe-b {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   .num {
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum' 1;
   }
+
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Etiqueta pequeña sobre los titulares. */
+  .eyebrow {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  /* Tratamiento común de TODAS las fotos: misma bajada de saturación y el
+     mismo punto de negro. Es lo que hace que parezcan de la misma sesión. */
+  .photo {
+    filter: saturate(0.92) contrast(1.02);
+  }
+
+  /* Velo oscuro sobre foto, para que el texto encima siempre tenga contraste. */
+  .veil::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(5, 5, 5, 0.62) 0%,
+        rgba(5, 5, 5, 0.12) 26%,
+        rgba(5, 5, 5, 0.55) 52%,
+        rgba(5, 5, 5, 0.92) 74%,
+        rgba(5, 5, 5, 0.99) 100%
+      ),
+      /* Segunda capa plana: iguala el punto de negro de todas las fotos, sean
+         de noche o de mediodía, para que el texto tenga siempre el mismo
+         contraste encima. */ linear-gradient(rgba(5, 5, 5, 0.18), rgba(5, 5, 5, 0.18));
+    pointer-events: none;
+  }
+
+  .veil-soft::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(5, 5, 5, 0) 38%, rgba(5, 5, 5, 0.9) 100%);
+    pointer-events: none;
+  }
+
+  /* Corta un texto a un número exacto de líneas. Es lo que mantiene todas las
+     tarjetas de un grupo con la misma altura pase lo que pase. */
+  .clamp-2,
+  .clamp-3,
+  .clamp-4 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .clamp-2 {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  .clamp-3 {
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+  .clamp-4 {
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+  }
+
+  /* Carril de carrusel: el scroll-padding tiene que igualar al padding, o el
+     scroll-snap pega la primera tarjeta al borde y se come el margen lateral. */
+  .rail {
+    padding-inline: 1.25rem;
+    scroll-padding-inline: 1.25rem;
+  }
+
+  @media (min-width: 48rem) {
+    .rail {
+      padding-inline: 2.5rem;
+      scroll-padding-inline: 2.5rem;
+    }
+  }
 }
 
 /* ==========================================================================
-   Textos legales
-   Ancho de lectura corto y espaciado generoso: son páginas largas y casi
-   siempre se leen en el móvil.
+   Movimiento
+   Sólo transform, opacity y clip-path. Nada en bucle.
    ========================================================================== */
 
-.legal p,
-.legal li {
-  color: var(--color-mist);
-  font-size: 0.9375rem;
-  line-height: 1.75;
+/* Titular por líneas: cada línea sube desde dentro de su propia máscara. */
+.line-mask {
+  display: block;
+  overflow: hidden;
 }
 
-.legal a {
-  color: var(--color-blue-300);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-color: color-mix(in srgb, var(--color-blue-300) 45%, transparent);
+.line-mask > span {
+  display: block;
+  transform: translate3d(0, 105%, 0);
+  transition: transform 900ms var(--ease-brand);
 }
 
-.legal ul {
-  margin: 0;
-  padding-left: 1.15rem;
-  list-style: none;
+.line-mask[data-visible='true'] > span {
+  transform: none;
 }
 
-.legal ul li {
-  position: relative;
-  margin-top: 0.5rem;
+/* Revelado de imagen: barrido con clip-path y un zoom de 1.06 a 1. */
+.reveal-img {
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 900ms var(--ease-brand);
 }
 
-.legal ul li::before {
-  content: '';
-  position: absolute;
-  top: 0.72em;
-  left: -1rem;
-  width: 5px;
-  height: 5px;
-  border-radius: 999px;
-  background: var(--color-blue-400);
+.reveal-img[data-visible='true'] {
+  clip-path: inset(0 0 0 0);
 }
 
-.legal strong {
-  color: var(--color-chalk);
-  font-weight: 600;
+.reveal-img > img,
+.reveal-img > picture > img {
+  transform: scale(1.06);
+  transition: transform 1200ms var(--ease-brand);
 }
 
-/* ==========================================================================
-   Animaciones
-   Sólo transform y opacity: no provocan layout ni repaint caro.
-   ========================================================================== */
-
-/* Destello que recorre el titular del hero una vez al cargar. */
-@keyframes metal-sheen {
-  0% {
-    transform: translate3d(-130%, 0, 0) skewX(-18deg);
-  }
-  100% {
-    transform: translate3d(330%, 0, 0) skewX(-18deg);
-  }
+.reveal-img[data-visible='true'] > img,
+.reveal-img[data-visible='true'] > picture > img {
+  transform: scale(1);
 }
 
-@keyframes marquee-x {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    transform: translate3d(-50%, 0, 0);
-  }
+/* Subida sencilla, para bloques que no son ni titular ni foto. */
+.rise {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0);
+  transition:
+    opacity 700ms var(--ease-brand),
+    transform 700ms var(--ease-brand);
 }
 
-@keyframes pulse-ring {
-  0% {
-    transform: scale(0.9);
-    opacity: 0.55;
-  }
-  70% {
-    transform: scale(1.45);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1.45);
-    opacity: 0;
-  }
+.rise[data-visible='true'] {
+  opacity: 1;
+  transform: none;
 }
 
-/* Entrada del hero: escalonada y SÓLO con transform, sin opacidad.
-   No es un capricho. Chrome descarta para siempre como candidato a LCP
-   cualquier elemento que en su primer pintado tuviera opacity: 0. Con una
-   entrada en fundido, todo el contenido del hero deja de contar y el LCP
-   acaba cayendo en lo último que aparezca, que es mucho peor marca. Deslizando
-   sólo con transform, el texto está pintado desde el primer fotograma: el LCP
-   lo marca el hero, como debe ser, y la animación no retrasa nada. */
-@keyframes rise-in {
-  from {
-    transform: translate3d(0, 22px, 0);
-  }
-  to {
-    transform: none;
-  }
+/* La flecha de los botones se desplaza un poco al pasar el ratón. */
+.btn-arrow {
+  transition: transform 400ms var(--ease-brand);
 }
 
-@keyframes float-soft {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0);
-  }
-  50% {
-    transform: translate3d(0, -5px, 0);
-  }
-}
-
-.anim-sheen::after {
-  content: '';
-  position: absolute;
-  inset-block: -12%;
-  left: 0;
-  width: 34%;
-  pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.02) 20%,
-    rgba(255, 255, 255, 0.5) 50%,
-    rgba(255, 255, 255, 0.02) 80%,
-    transparent
-  );
-  mix-blend-mode: overlay;
-  transform: translate3d(-130%, 0, 0) skewX(-18deg);
-  animation: metal-sheen 1400ms var(--ease-out-expo) 620ms 1 both;
-}
-
-.anim-marquee {
-  animation: marquee-x var(--marquee-duration, 38s) linear infinite;
-  will-change: transform;
-}
-
-.anim-rise {
-  animation: rise-in 560ms var(--ease-out-expo) both;
-}
-
-.anim-pulse-ring {
-  animation: pulse-ring 2.4s ease-out infinite;
-}
-
-.anim-float {
-  animation: float-soft 4.5s ease-in-out infinite;
+.group\/btn:hover .btn-arrow {
+  transform: translateX(3px);
 }
 
 /* ==========================================================================
    prefers-reduced-motion
-   Se apagan parallax, destellos, marquee y flotados. El contenido no depende
-   de ninguna animación para verse: todo parte de opacidad 1 en el HTML.
+   Se apaga todo. El contenido nunca depende de una animación para verse.
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
@@ -438,8 +340,6 @@
   *::before,
   *::after {
     animation-duration: 0.001ms !important;
-    /* El retardo también: si no, una entrada escalonada dejaría el contenido
-       invisible durante su delay antes de aparecer de golpe. */
     animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
@@ -447,12 +347,69 @@
     scroll-behavior: auto !important;
   }
 
-  .anim-sheen::after {
-    display: none;
+  .line-mask > span,
+  .reveal-img > img,
+  .reveal-img > picture > img {
+    transform: none !important;
   }
 
-  .anim-marquee {
-    animation: none;
-    transform: none;
+  .reveal-img {
+    clip-path: none !important;
   }
+
+  .rise {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ==========================================================================
+   Páginas legales
+   ========================================================================== */
+
+.legal h2 {
+  margin-top: 3rem;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.legal h2:first-child {
+  margin-top: 0;
+}
+
+.legal p,
+.legal li {
+  margin-top: 1rem;
+  color: var(--color-muted);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.legal a {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(255, 255, 255, 0.28);
+}
+
+.legal a:hover {
+  text-decoration-color: rgba(255, 255, 255, 0.7);
+}
+
+.legal ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  list-style: none;
+}
+
+.legal ul li::before {
+  content: '—';
+  position: absolute;
+  margin-left: -1.1rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.legal strong {
+  color: var(--color-ink);
+  font-weight: 500;
 }

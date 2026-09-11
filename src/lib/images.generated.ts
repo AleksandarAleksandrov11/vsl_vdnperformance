@@ -13,457 +13,642 @@ export type ImgAsset = {
 };
 
 export const IMAGES = {
-  "hero-portrait": {
-    "alt": "BMW Serie 3 gris saliendo del taller de VDN Performance en Collado Villalba de noche",
-    "width": 900,
-    "height": 1320,
-    "aspect": 0.68182,
-    "src": "/img/hero-portrait-560.jpg",
+  "hero-v": {
+    "alt": "BMW Serie 3 recién reprogramado saliendo del taller de VDN Performance de noche",
+    "width": 1040,
+    "height": 1964,
+    "aspect": 0.52941,
+    "src": "/img/hero-v-600.jpg",
     "avif": [
       {
-        "src": "/img/hero-portrait-420.avif",
+        "src": "/img/hero-v-420.avif",
         "w": 420
       },
       {
-        "src": "/img/hero-portrait-560.avif",
-        "w": 560
+        "src": "/img/hero-v-600.avif",
+        "w": 600
       },
       {
-        "src": "/img/hero-portrait-760.avif",
-        "w": 760
-      },
-      {
-        "src": "/img/hero-portrait-900.avif",
-        "w": 900
-      }
-    ],
-    "webp": [
-      {
-        "src": "/img/hero-portrait-420.webp",
-        "w": 420
-      },
-      {
-        "src": "/img/hero-portrait-560.webp",
-        "w": 560
-      },
-      {
-        "src": "/img/hero-portrait-760.webp",
-        "w": 760
-      },
-      {
-        "src": "/img/hero-portrait-900.webp",
-        "w": 900
-      }
-    ],
-    "lqip": "data:image/webp;base64,UklGRq4AAABXRUJQVlA4IKIAAABQBQCdASoUAB0APxmEuVYsqCWjqAgBkCMJZQC84BIyzyrPi9aTj0GOzTKgJSNMSyTJ5uAA/tDvCfuuUiXLWAfyZoHpF30bqSAkRK88Tx2X335rOK7sLE7ttRkBz4Tol6e0mBLnF3GMDXSNbIm5ujO2D268AwEAJvxmOV82RPlY7sYWZ9sxylUy8Uq1eo5rQk56fA0GeUJJKBfYasyt2N1AAAA=",
-    "color": "rgb(8,8,8)"
-  },
-  "hero-wide": {
-    "alt": "BMW Serie 3 gris saliendo del taller de VDN Performance en Collado Villalba de noche",
-    "width": 1920,
-    "height": 1080,
-    "aspect": 1.77778,
-    "src": "/img/hero-wide-1500.jpg",
-    "avif": [
-      {
-        "src": "/img/hero-wide-1100.avif",
-        "w": 1100
-      },
-      {
-        "src": "/img/hero-wide-1500.avif",
-        "w": 1500
-      },
-      {
-        "src": "/img/hero-wide-1920.avif",
-        "w": 1920
-      }
-    ],
-    "webp": [
-      {
-        "src": "/img/hero-wide-1100.webp",
-        "w": 1100
-      },
-      {
-        "src": "/img/hero-wide-1500.webp",
-        "w": 1500
-      },
-      {
-        "src": "/img/hero-wide-1920.webp",
-        "w": 1920
-      }
-    ],
-    "lqip": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAACQAwCdASoUAAsAPxl2slCspySisAgBkCMJZQAASF8ZG9YumDLAAP66F3lNuEu9DrGO04ZiY4oF8oKp5VK93xvSBx5vRC6MjVIQyjsGsPjBwhm7+0malZoY/figAA==",
-    "color": "rgb(8,8,8)"
-  },
-  "impact-portrait": {
-    "alt": "BMW Serie 3 negro con los faros encendidos dentro del taller",
-    "width": 820,
-    "height": 1093,
-    "aspect": 0.75,
-    "src": "/img/impact-portrait-560.jpg",
-    "avif": [
-      {
-        "src": "/img/impact-portrait-420.avif",
-        "w": 420
-      },
-      {
-        "src": "/img/impact-portrait-560.avif",
-        "w": 560
-      },
-      {
-        "src": "/img/impact-portrait-820.avif",
+        "src": "/img/hero-v-820.avif",
         "w": 820
+      },
+      {
+        "src": "/img/hero-v-1040.avif",
+        "w": 1040
       }
     ],
     "webp": [
       {
-        "src": "/img/impact-portrait-420.webp",
+        "src": "/img/hero-v-420.webp",
         "w": 420
       },
       {
-        "src": "/img/impact-portrait-560.webp",
-        "w": 560
+        "src": "/img/hero-v-600.webp",
+        "w": 600
       },
       {
-        "src": "/img/impact-portrait-820.webp",
+        "src": "/img/hero-v-820.webp",
         "w": 820
+      },
+      {
+        "src": "/img/hero-v-1040.webp",
+        "w": 1040
       }
     ],
-    "lqip": "data:image/webp;base64,UklGRpYAAABXRUJQVlA4IIoAAADwBACdASoUABsAPxmAtFUsp6SjKAqpkCMJYwDI1A42n2IebWkGMB7Se4K/J9Ewy2gA+E+tdsZkII98+Gi8yCyVtEYwmDHnHYqAI4HSI41wI4owA0+U/mN+iDFI/EJ+THdWXEE/K2PH3uhO/nghNY5BPRdHcERTZ0v1o5NOKzLU6DVO8C2ev0LAAAA=",
+    "lqip": "data:image/webp;base64,UklGRroAAABXRUJQVlA4IK4AAABQBQCdASoUACYAPxl6s1Gsp6SiqqwBkCMJZQDKeBaaTQfDNv1otTz2QG/KQou3OlDnn4AA/sA3vHd0JRTLRDYnSz9B5ky1T9hdCoQdozlmXJTRy33WIAf44WpJaDg+Wl7HUQLVQyC/HrztswcLf5DiVm1UC9k6VuBiQFxLCOzpornBiBmCQMxZg20Y1SJSnxAcjAhGrBASebF2KfOuh/LEkSDK6On9r3+BkLQAAAA=",
     "color": "rgb(8,8,8)"
   },
-  "impact-wide": {
-    "alt": "BMW Serie 3 negro con los faros encendidos dentro del taller",
-    "width": 1920,
-    "height": 1080,
+  "hero-h": {
+    "alt": "BMW Serie 3 recién reprogramado saliendo del taller de VDN Performance de noche",
+    "width": 2000,
+    "height": 1125,
     "aspect": 1.77778,
-    "src": "/img/impact-wide-1500.jpg",
+    "src": "/img/hero-h-1600.jpg",
     "avif": [
       {
-        "src": "/img/impact-wide-1100.avif",
-        "w": 1100
+        "src": "/img/hero-h-1200.avif",
+        "w": 1200
       },
       {
-        "src": "/img/impact-wide-1500.avif",
-        "w": 1500
+        "src": "/img/hero-h-1600.avif",
+        "w": 1600
       },
       {
-        "src": "/img/impact-wide-1920.avif",
-        "w": 1920
+        "src": "/img/hero-h-2000.avif",
+        "w": 2000
       }
     ],
     "webp": [
       {
-        "src": "/img/impact-wide-1100.webp",
-        "w": 1100
+        "src": "/img/hero-h-1200.webp",
+        "w": 1200
       },
       {
-        "src": "/img/impact-wide-1500.webp",
-        "w": 1500
+        "src": "/img/hero-h-1600.webp",
+        "w": 1600
       },
       {
-        "src": "/img/impact-wide-1920.webp",
-        "w": 1920
+        "src": "/img/hero-h-2000.webp",
+        "w": 2000
       }
     ],
-    "lqip": "data:image/webp;base64,UklGRmAAAABXRUJQVlA4IFQAAAAQBACdASoUAAsAPxl4slEspySisAgBkCMJYwDE2CB2EAfYCW5IdgDAAADcihJMxmPIdZ/LnBecxOzGiXErKUUT+2Eg1k23NKDKLkhutQmHfpSwAAA=",
+    "lqip": "data:image/webp;base64,UklGRnAAAABXRUJQVlA4IGQAAACwAwCdASoUAAsAPxl2slEspySisAgBkCMJZQAATpukC+dfZ4WwAAD+oOt5TX6XDT+HoD2aKatu0Km74HgVkG1IMKhRh83zeqln4XwYQE3jbghaUmPQsKv1+FobHk2nULLoXxAA",
     "color": "rgb(8,8,8)"
   },
-  "garantia": {
-    "alt": "BMW Serie 5 plateado aparcado en la puerta del taller",
-    "width": 860,
-    "height": 1075,
+  "stage-1": {
+    "alt": "Audi A3 conectado para la lectura de la centralita",
+    "width": 1040,
+    "height": 780,
+    "aspect": 1.33333,
+    "src": "/img/stage-1-720.jpg",
+    "avif": [
+      {
+        "src": "/img/stage-1-420.avif",
+        "w": 420
+      },
+      {
+        "src": "/img/stage-1-720.avif",
+        "w": 720
+      },
+      {
+        "src": "/img/stage-1-1040.avif",
+        "w": 1040
+      }
+    ],
+    "webp": [
+      {
+        "src": "/img/stage-1-420.webp",
+        "w": 420
+      },
+      {
+        "src": "/img/stage-1-720.webp",
+        "w": 720
+      },
+      {
+        "src": "/img/stage-1-1040.webp",
+        "w": 1040
+      }
+    ],
+    "lqip": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAACQAwCdASoUAA8APxl2s1EspySisAgBkCMJZQAASTQwx8wO+B6AAP6NN8AqlJ51380kYJ2HofyvKuuIS8JU4krFgCoQmyd1JqhYf6++ivsZP5jT9w+1MKGI/dJY2mKnKHflSg9rGd1W2nAFwAA=",
+    "color": "rgb(8,8,8)"
+  },
+  "stage-2": {
+    "alt": "Audi con el capó abierto durante el trabajo mecánico",
+    "width": 1040,
+    "height": 780,
+    "aspect": 1.33333,
+    "src": "/img/stage-2-720.jpg",
+    "avif": [
+      {
+        "src": "/img/stage-2-420.avif",
+        "w": 420
+      },
+      {
+        "src": "/img/stage-2-720.avif",
+        "w": 720
+      },
+      {
+        "src": "/img/stage-2-1040.avif",
+        "w": 1040
+      }
+    ],
+    "webp": [
+      {
+        "src": "/img/stage-2-420.webp",
+        "w": 420
+      },
+      {
+        "src": "/img/stage-2-720.webp",
+        "w": 720
+      },
+      {
+        "src": "/img/stage-2-1040.webp",
+        "w": 1040
+      }
+    ],
+    "lqip": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAAAQBACdASoUAA8APxl0slCspqSisAgBkCMJZQAAUqnrzoFeibUqwX47gAD+VEjslx0DsfW+5+CX/6hjOKfDHq/4J0MvSV8tvu6IHGb3ZoeiF1ljo3gXUZixlJKGeVQ3SCtKv7H/0Qb0Kyf/UAA=",
+    "color": "rgb(8,8,8)"
+  },
+  "stage-3": {
+    "alt": "BMW Serie 5 preparado en el taller",
+    "width": 1040,
+    "height": 780,
+    "aspect": 1.33333,
+    "src": "/img/stage-3-720.jpg",
+    "avif": [
+      {
+        "src": "/img/stage-3-420.avif",
+        "w": 420
+      },
+      {
+        "src": "/img/stage-3-720.avif",
+        "w": 720
+      },
+      {
+        "src": "/img/stage-3-1040.avif",
+        "w": 1040
+      }
+    ],
+    "webp": [
+      {
+        "src": "/img/stage-3-420.webp",
+        "w": 420
+      },
+      {
+        "src": "/img/stage-3-720.webp",
+        "w": 720
+      },
+      {
+        "src": "/img/stage-3-1040.webp",
+        "w": 1040
+      }
+    ],
+    "lqip": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAADwAwCdASoUAA8APxl0slCspqSisAgBkCMJZQAAXGgm6Bgfl5741jIAAPfbvgiVQd7pt0EPFBty6+7ntAj5omagZxQmZFbJ4OXUPpvW0uYn/qalgr6FuHGzmucCPS4kMXZofBGWgPfKsAAA",
+    "color": "rgb(8,8,8)"
+  },
+  "paso-1": {
+    "alt": "Audi A3 esperando su turno en el taller",
+    "width": 1000,
+    "height": 1250,
     "aspect": 0.8,
-    "src": "/img/garantia-620.jpg",
+    "src": "/img/paso-1-720.jpg",
     "avif": [
       {
-        "src": "/img/garantia-420.avif",
+        "src": "/img/paso-1-420.avif",
         "w": 420
       },
       {
-        "src": "/img/garantia-620.avif",
-        "w": 620
+        "src": "/img/paso-1-720.avif",
+        "w": 720
       },
       {
-        "src": "/img/garantia-860.avif",
-        "w": 860
+        "src": "/img/paso-1-1000.avif",
+        "w": 1000
       }
     ],
     "webp": [
       {
-        "src": "/img/garantia-420.webp",
+        "src": "/img/paso-1-420.webp",
         "w": 420
       },
       {
-        "src": "/img/garantia-620.webp",
-        "w": 620
+        "src": "/img/paso-1-720.webp",
+        "w": 720
       },
       {
-        "src": "/img/garantia-860.webp",
-        "w": 860
+        "src": "/img/paso-1-1000.webp",
+        "w": 1000
       }
     ],
-    "lqip": "data:image/webp;base64,UklGRpwAAABXRUJQVlA4IJAAAACwBACdASoUABkAPxmEuFasqCUjqAgBkCMJZQDCgAopK3ZLgkwIs/tSdYybqhgAAPey4sKK6n1rRE8ciC2bS8hRi1+psdWgVeONEQItmpRyXQbrjjrh+MpJYyYxZGKIIJXb8hIhXtnJjPlrP4UMcqkjgq78gVphknmHcr/EgbgeAnRqpLRPk9x1XH000DOSwAA=",
-    "color": "rgb(8,8,8)"
+    "lqip": "data:image/webp;base64,UklGRpQAAABXRUJQVlA4IIgAAADQBACdASoUABkAPxmAtFUsp6SjKAqpkCMJZQDDNBE8gVE27n5kpxsY1Nv5DvqxgAD6nCGX7BCXQKlRwDKu6aCoFZ5ZTiO6QFqeFbJ5WeDrwvGoHLGceLa5mUXXrsQFCxnpQi9FOfP3vs9Xt06U0/bB01JUsvHe7Xi3CMx33FX/nTzLH0EAAAAA",
+    "color": "rgb(152,136,120)"
   },
-  "proceso-wide": {
-    "alt": "Audi A3 gris preparado para la diagnosis en el taller",
-    "width": 1600,
-    "height": 900,
-    "aspect": 1.77778,
-    "src": "/img/proceso-wide-1200.jpg",
+  "paso-2": {
+    "alt": "Range Rover Sport en el puesto de trabajo",
+    "width": 1000,
+    "height": 1250,
+    "aspect": 0.8,
+    "src": "/img/paso-2-720.jpg",
     "avif": [
       {
-        "src": "/img/proceso-wide-760.avif",
-        "w": 760
+        "src": "/img/paso-2-420.avif",
+        "w": 420
       },
       {
-        "src": "/img/proceso-wide-1200.avif",
-        "w": 1200
+        "src": "/img/paso-2-720.avif",
+        "w": 720
       },
       {
-        "src": "/img/proceso-wide-1600.avif",
-        "w": 1600
+        "src": "/img/paso-2-1000.avif",
+        "w": 1000
       }
     ],
     "webp": [
       {
-        "src": "/img/proceso-wide-760.webp",
-        "w": 760
+        "src": "/img/paso-2-420.webp",
+        "w": 420
       },
       {
-        "src": "/img/proceso-wide-1200.webp",
-        "w": 1200
+        "src": "/img/paso-2-720.webp",
+        "w": 720
       },
       {
-        "src": "/img/proceso-wide-1600.webp",
-        "w": 1600
+        "src": "/img/paso-2-1000.webp",
+        "w": 1000
       }
     ],
-    "lqip": "data:image/webp;base64,UklGRmoAAABXRUJQVlA4IF4AAACwAwCdASoUAAsAPxl2slCspySisAgBkCMJZwAAPZevOsns02/oAADciHPsPxgg0bkjBewIZcdRpTgH0cykWQ1+Z9Bf0mYvapSRr0Z2bP6jTXvRbYJGuEjHtjZ1ZAAA",
-    "color": "rgb(8,8,8)"
+    "lqip": "data:image/webp;base64,UklGRoAAAABXRUJQVlA4IHQAAAAQBQCdASoUABkAPxl+tVSsp6SjKAqpkCMJZQDCgA9z1a52zVKds+kW870/2HzzZU4AAPghGk0W9BpBV3Te7ovCDaI5gRXrhvRgnmhIxxAImzq9eYCbw8ENmAfdNrkGtKsp5l4Il/biYzANkhg7MlLKjb4AAA==",
+    "color": "rgb(168,152,136)"
   },
-  "servicios-wide": {
-    "alt": "Range Rover Sport en el puesto de trabajo del taller",
-    "width": 1600,
-    "height": 900,
-    "aspect": 1.77778,
-    "src": "/img/servicios-wide-1200.jpg",
+  "paso-3": {
+    "alt": "BMW Serie 3 listo para salir del taller",
+    "width": 1000,
+    "height": 1250,
+    "aspect": 0.8,
+    "src": "/img/paso-3-720.jpg",
     "avif": [
       {
-        "src": "/img/servicios-wide-760.avif",
-        "w": 760
+        "src": "/img/paso-3-420.avif",
+        "w": 420
       },
       {
-        "src": "/img/servicios-wide-1200.avif",
-        "w": 1200
+        "src": "/img/paso-3-720.avif",
+        "w": 720
       },
       {
-        "src": "/img/servicios-wide-1600.avif",
-        "w": 1600
+        "src": "/img/paso-3-1000.avif",
+        "w": 1000
       }
     ],
     "webp": [
       {
-        "src": "/img/servicios-wide-760.webp",
-        "w": 760
+        "src": "/img/paso-3-420.webp",
+        "w": 420
       },
       {
-        "src": "/img/servicios-wide-1200.webp",
-        "w": 1200
+        "src": "/img/paso-3-720.webp",
+        "w": 720
       },
       {
-        "src": "/img/servicios-wide-1600.webp",
-        "w": 1600
+        "src": "/img/paso-3-1000.webp",
+        "w": 1000
       }
     ],
-    "lqip": "data:image/webp;base64,UklGRmQAAABXRUJQVlA4IFgAAADwAwCdASoUAAsAPxl0slCspqSisAgBkCMJZQDE2B2DGbVTVupZ0BxwAPRX4KUIAadnAYE9B+FfsVSnszu33WymFR+PnnxeLceCWNJ64hJMB6FKuG30UgAA",
-    "color": "rgb(72,72,72)"
-  },
-  "dyno-wide": {
-    "alt": "Audi A3 blanco esperando su reprogramación",
-    "width": 1600,
-    "height": 900,
-    "aspect": 1.77778,
-    "src": "/img/dyno-wide-1200.jpg",
-    "avif": [
-      {
-        "src": "/img/dyno-wide-760.avif",
-        "w": 760
-      },
-      {
-        "src": "/img/dyno-wide-1200.avif",
-        "w": 1200
-      },
-      {
-        "src": "/img/dyno-wide-1600.avif",
-        "w": 1600
-      }
-    ],
-    "webp": [
-      {
-        "src": "/img/dyno-wide-760.webp",
-        "w": 760
-      },
-      {
-        "src": "/img/dyno-wide-1200.webp",
-        "w": 1200
-      },
-      {
-        "src": "/img/dyno-wide-1600.webp",
-        "w": 1600
-      }
-    ],
-    "lqip": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAAAQBACdASoUAAsAPxl2slCspySisAgBkCMJZQDE2CFXUdwUQIMCSDkxAAD+2f93hOFZ0XByNo8gaGDwB2LDgSPNcB05zzH2oW3vknNw5M9Dj4CFUZEI8JwIr2cJBxZ5fQ25jMcAAAA=",
-    "color": "rgb(8,8,8)"
+    "lqip": "data:image/webp;base64,UklGRogAAABXRUJQVlA4IHwAAACQBACdASoUABkAPxl8slOsp6QiqA1RkCMJYwDI1A4vBXAIbLdfSlU5WGELmPAA960SuE0RxtFDgr+oDzf/3pGwHYuRGqRy0cCd+oH6vGpbUNp5RgtMq9rbvYqs5fv934AeUTRGlj00ZKOsO/7yEwrlRD3bAhxFmCiJ9MAA",
+    "color": "rgb(88,56,40)"
   },
   "work-e46-330d": {
-    "alt": "BMW E46 330d azul oscuro reprogramado en Stage 1 por VDN Performance",
-    "width": 780,
-    "height": 975,
+    "alt": "BMW E46 330d con Stage 1",
+    "width": 640,
+    "height": 800,
     "aspect": 0.8,
-    "src": "/img/work-e46-330d-560.jpg",
+    "src": "/img/work-e46-330d-460.jpg",
     "avif": [
       {
-        "src": "/img/work-e46-330d-380.avif",
-        "w": 380
+        "src": "/img/work-e46-330d-320.avif",
+        "w": 320
       },
       {
-        "src": "/img/work-e46-330d-560.avif",
-        "w": 560
+        "src": "/img/work-e46-330d-460.avif",
+        "w": 460
       },
       {
-        "src": "/img/work-e46-330d-780.avif",
-        "w": 780
+        "src": "/img/work-e46-330d-640.avif",
+        "w": 640
       }
     ],
     "webp": [
       {
-        "src": "/img/work-e46-330d-380.webp",
-        "w": 380
+        "src": "/img/work-e46-330d-320.webp",
+        "w": 320
       },
       {
-        "src": "/img/work-e46-330d-560.webp",
-        "w": 560
+        "src": "/img/work-e46-330d-460.webp",
+        "w": 460
       },
       {
-        "src": "/img/work-e46-330d-780.webp",
-        "w": 780
+        "src": "/img/work-e46-330d-640.webp",
+        "w": 640
       }
     ],
-    "lqip": "data:image/webp;base64,UklGRqgAAABXRUJQVlA4IJwAAABQBQCdASoUABkAPxmAtFUsqCSjKAqpkCMJYgCdM2QBWmNw6jPqLO8gYEjfs5DtkrdeuuQA/rp7NpcgyWNyUT90Dz/2n7t+AImRqdBrrfiI3Fg/kYggKczz9pxECiE0meMYjdx85VdJN5qpf88rajBxxkAlKnaqOuzqUpFGk1XVqDRMdKuwZgCiw6qRzA71unVmnVEB+KTQebmAAAA=",
-    "color": "rgb(168,152,120)"
+    "lqip": "data:image/webp;base64,UklGRqIAAABXRUJQVlA4IJYAAAAwBQCdASoUABkAPxmAtVSsqCSjKAqpkCMJQBdmUAArTG0VZ5JdHlfqKxSJStx/v3HrQAD+uns2lxr5GUtvUeGvOzyauQVrW3gNa/yrSmx9sZ70khoSeYQ+04iBOAvHqEDyK1DoyIbo2+uKQz2NNIqa8/KfyWaHvlGeaMRnl/gu+nt2p3reZTPdAGsY7BEIp20DG9p3AAA=",
+    "color": "rgb(168,152,136)"
   },
   "work-e46-320i": {
-    "alt": "BMW E46 320i plateado con Stage 1 y Hardcut",
-    "width": 780,
-    "height": 975,
+    "alt": "BMW E46 320i con Stage 1",
+    "width": 640,
+    "height": 800,
     "aspect": 0.8,
-    "src": "/img/work-e46-320i-560.jpg",
+    "src": "/img/work-e46-320i-460.jpg",
     "avif": [
       {
-        "src": "/img/work-e46-320i-380.avif",
-        "w": 380
+        "src": "/img/work-e46-320i-320.avif",
+        "w": 320
       },
       {
-        "src": "/img/work-e46-320i-560.avif",
-        "w": 560
+        "src": "/img/work-e46-320i-460.avif",
+        "w": 460
       },
       {
-        "src": "/img/work-e46-320i-780.avif",
-        "w": 780
+        "src": "/img/work-e46-320i-640.avif",
+        "w": 640
       }
     ],
     "webp": [
       {
-        "src": "/img/work-e46-320i-380.webp",
-        "w": 380
+        "src": "/img/work-e46-320i-320.webp",
+        "w": 320
       },
       {
-        "src": "/img/work-e46-320i-560.webp",
-        "w": 560
+        "src": "/img/work-e46-320i-460.webp",
+        "w": 460
       },
       {
-        "src": "/img/work-e46-320i-780.webp",
-        "w": 780
+        "src": "/img/work-e46-320i-640.webp",
+        "w": 640
       }
     ],
-    "lqip": "data:image/webp;base64,UklGRpQAAABXRUJQVlA4IIgAAADwBACdASoUABkAPxmCuVYsqCWjqAgBkCMJZQDE2BEGALgLLpzi04wlToQMzMhmcAAAy0GvNR5v3UBORDrKUESl/wR7Er8Drp3lFTiB1tAPOoLdmdC+Y2tnoVgYvcEJgOiDvh9qhfJdAz8Dsrz/m+c3G5NpTiqlq2/oHl3FjqRi90kMLQ8wAAAA",
-    "color": "rgb(8,8,8)"
+    "lqip": "data:image/webp;base64,UklGRooAAABXRUJQVlA4IH4AAABwBACdASoUABkAPxmEuVYsqCWjqAgBkCMJZQC90BCUUA6iPHMN6fueMn7igADyldG+PgSd/LlVhLKfW+peiFE8mVUBdcnebRogtYp9Gz2Q3I6wVmNV+EhdKAOO0Ug25lD16rvbxet81NMD+39hjQYzng/nG0MKfyNXQV7sEAA=",
+    "color": "rgb(88,72,56)"
   },
   "work-e60-530d": {
-    "alt": "BMW E60 530d negro con Stage 2 y más de 80 CV de ganancia",
-    "width": 780,
-    "height": 975,
+    "alt": "BMW E60 530d con Stage 2",
+    "width": 640,
+    "height": 800,
     "aspect": 0.8,
-    "src": "/img/work-e60-530d-560.jpg",
+    "src": "/img/work-e60-530d-460.jpg",
     "avif": [
       {
-        "src": "/img/work-e60-530d-380.avif",
-        "w": 380
+        "src": "/img/work-e60-530d-320.avif",
+        "w": 320
       },
       {
-        "src": "/img/work-e60-530d-560.avif",
-        "w": 560
+        "src": "/img/work-e60-530d-460.avif",
+        "w": 460
       },
       {
-        "src": "/img/work-e60-530d-780.avif",
-        "w": 780
+        "src": "/img/work-e60-530d-640.avif",
+        "w": 640
       }
     ],
     "webp": [
       {
-        "src": "/img/work-e60-530d-380.webp",
-        "w": 380
+        "src": "/img/work-e60-530d-320.webp",
+        "w": 320
       },
       {
-        "src": "/img/work-e60-530d-560.webp",
-        "w": 560
+        "src": "/img/work-e60-530d-460.webp",
+        "w": 460
       },
       {
-        "src": "/img/work-e60-530d-780.webp",
-        "w": 780
+        "src": "/img/work-e60-530d-640.webp",
+        "w": 640
       }
     ],
-    "lqip": "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAACwBACdASoUABkAPxl+tFUsp6SjKAqpkCMJYwDLpBEJ8g1x+TPxVNPv2Jytd18AAP7pcsgGTKlBHuOIUzXle3mIOYShaAt+PMsbpTqpAuZfy/0hKHCemhhbIvnjj8bg80nOUFX2/V//s/vgEqE6sDF4/SDtsAAA",
+    "lqip": "data:image/webp;base64,UklGRpAAAABXRUJQVlA4IIQAAADwBACdASoUABkAPxl+sVQsqCQjKA1RkCMJYwC+SBDR8Fb8Qyt+Yle54jX7/1XLcYAA/uS+jeszops76nQ81RAjCTe8j62Ni1RzSBcbwyL72Y3W0gqbV7LD6vDN/nLsbJHAL5mFOnXQ8WTvIp8GNV/2HNTrkAMoENq3FPBK9+zCF/VyAAA=",
+    "color": "rgb(56,40,40)"
+  },
+  "work-a4-tdi": {
+    "alt": "Audi TDI en la puesta a punto",
+    "width": 640,
+    "height": 800,
+    "aspect": 0.8,
+    "src": "/img/work-a4-tdi-460.jpg",
+    "avif": [
+      {
+        "src": "/img/work-a4-tdi-320.avif",
+        "w": 320
+      },
+      {
+        "src": "/img/work-a4-tdi-460.avif",
+        "w": 460
+      },
+      {
+        "src": "/img/work-a4-tdi-640.avif",
+        "w": 640
+      }
+    ],
+    "webp": [
+      {
+        "src": "/img/work-a4-tdi-320.webp",
+        "w": 320
+      },
+      {
+        "src": "/img/work-a4-tdi-460.webp",
+        "w": 460
+      },
+      {
+        "src": "/img/work-a4-tdi-640.webp",
+        "w": 640
+      }
+    ],
+    "lqip": "data:image/webp;base64,UklGRpQAAABXRUJQVlA4IIgAAADQBACdASoUABkAPxl4tFIspyUiqA1RkCMJZQDC+A898gTp5uH/EKD/xWI/dIGVAAD8XIbRYethhJZi+nMsReDfjz55WXHKjCiujMnmarw5suZ472kbQdF6Oi4EIpZik2TUyRB7cd+xln9Ew7GNog8xSIIwynKqsEInArXM3LiDDYbwQ8pt0YAA",
     "color": "rgb(8,8,8)"
   },
-  "work-audi-diag": {
-    "alt": "Audi TDI con el capó abierto durante la diagnosis previa a la reprogramación",
-    "width": 780,
-    "height": 975,
+  "work-e90": {
+    "alt": "BMW Serie 3 E90 reprogramado",
+    "width": 640,
+    "height": 800,
     "aspect": 0.8,
-    "src": "/img/work-audi-diag-560.jpg",
+    "src": "/img/work-e90-460.jpg",
     "avif": [
       {
-        "src": "/img/work-audi-diag-380.avif",
-        "w": 380
+        "src": "/img/work-e90-320.avif",
+        "w": 320
       },
       {
-        "src": "/img/work-audi-diag-560.avif",
-        "w": 560
+        "src": "/img/work-e90-460.avif",
+        "w": 460
       },
       {
-        "src": "/img/work-audi-diag-780.avif",
-        "w": 780
+        "src": "/img/work-e90-640.avif",
+        "w": 640
       }
     ],
     "webp": [
       {
-        "src": "/img/work-audi-diag-380.webp",
-        "w": 380
+        "src": "/img/work-e90-320.webp",
+        "w": 320
       },
       {
-        "src": "/img/work-audi-diag-560.webp",
-        "w": 560
+        "src": "/img/work-e90-460.webp",
+        "w": 460
       },
       {
-        "src": "/img/work-audi-diag-780.webp",
-        "w": 780
+        "src": "/img/work-e90-640.webp",
+        "w": 640
       }
     ],
-    "lqip": "data:image/webp;base64,UklGRpQAAABXRUJQVlA4IIgAAACwBACdASoUABkAPxl8slMsp6QsKA1RkCMJYwDBkA3aQCy7Gc3ybiyya/d6EcDAAP5UZnUOtSwPml/SiEX1DZQF939uHft47f9HcU+91cPAFUR3Iv2b18KnKxV9uaQPkYSde8mwP2ktK1VWdtfy1S/+5YgrfnpBe+EwLfmfi4+PHK8UYWFXQAAA",
+    "lqip": "data:image/webp;base64,UklGRogAAABXRUJQVlA4IHwAAACQBACdASoUABkAPxl8slOsp6QiqA1RkCMJYwDI1A4vBXAIbLdfSlU5WGELmPAA960SuE0RxtFDgr+oDzf/3pGwHYuRGqRy0cCd+oH6vGpbUNp5RgtMq9rbvYqs5fv934AeUTRGlj00ZKOsO/7yEwrlRD3bAhxFmCiJ9MAA",
+    "color": "rgb(88,56,40)"
+  },
+  "work-a3": {
+    "alt": "Audi A3 reprogramado",
+    "width": 640,
+    "height": 800,
+    "aspect": 0.8,
+    "src": "/img/work-a3-460.jpg",
+    "avif": [
+      {
+        "src": "/img/work-a3-320.avif",
+        "w": 320
+      },
+      {
+        "src": "/img/work-a3-460.avif",
+        "w": 460
+      },
+      {
+        "src": "/img/work-a3-640.avif",
+        "w": 640
+      }
+    ],
+    "webp": [
+      {
+        "src": "/img/work-a3-320.webp",
+        "w": 320
+      },
+      {
+        "src": "/img/work-a3-460.webp",
+        "w": 460
+      },
+      {
+        "src": "/img/work-a3-640.webp",
+        "w": 640
+      }
+    ],
+    "lqip": "data:image/webp;base64,UklGRpYAAABXRUJQVlA4IIoAAABwBACdASoUABkAPxmCuFYsqCUjqAgBkCMJZQDKAAyyAXzhok5HB8xQaFPVAAD+WaI7kl8XhgZrLaxgwWvlre87pORTi8fLfiIqKLlfr0w0I2ORggkRkSPfrNLn2har76ifG3026R2O3g5I1SE7YXLT/GzskZxu8+sKcjZakyG4M4Dot7HW4hRjgAA=",
     "color": "rgb(8,8,8)"
+  },
+  "work-rrsport": {
+    "alt": "Range Rover Sport reprogramado",
+    "width": 640,
+    "height": 800,
+    "aspect": 0.8,
+    "src": "/img/work-rrsport-460.jpg",
+    "avif": [
+      {
+        "src": "/img/work-rrsport-320.avif",
+        "w": 320
+      },
+      {
+        "src": "/img/work-rrsport-460.avif",
+        "w": 460
+      },
+      {
+        "src": "/img/work-rrsport-640.avif",
+        "w": 640
+      }
+    ],
+    "webp": [
+      {
+        "src": "/img/work-rrsport-320.webp",
+        "w": 320
+      },
+      {
+        "src": "/img/work-rrsport-460.webp",
+        "w": 460
+      },
+      {
+        "src": "/img/work-rrsport-640.webp",
+        "w": 640
+      }
+    ],
+    "lqip": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAACQBQCdASoUABkAPxmAtFUsqCSjKAqpkCMJZQDA3A+AeLYF0E1MCqwVOArAJZsOW5QV7cPAAAD4DClmRP7+AcgiwIMkV+8AMCNBPYeytBesxS0pmQCAQhoksWbNTa8bpnL5vawbY2AvXIF2V4Jd9jCIAAA=",
+    "color": "rgb(168,152,136)"
+  },
+  "cierre-v": {
+    "alt": "BMW Serie 5 saliendo del taller al anochecer",
+    "width": 860,
+    "height": 1147,
+    "aspect": 0.75,
+    "src": "/img/cierre-v-620.jpg",
+    "avif": [
+      {
+        "src": "/img/cierre-v-420.avif",
+        "w": 420
+      },
+      {
+        "src": "/img/cierre-v-620.avif",
+        "w": 620
+      },
+      {
+        "src": "/img/cierre-v-860.avif",
+        "w": 860
+      }
+    ],
+    "webp": [
+      {
+        "src": "/img/cierre-v-420.webp",
+        "w": 420
+      },
+      {
+        "src": "/img/cierre-v-620.webp",
+        "w": 620
+      },
+      {
+        "src": "/img/cierre-v-860.webp",
+        "w": 860
+      }
+    ],
+    "lqip": "data:image/webp;base64,UklGRpYAAABXRUJQVlA4IIoAAABwBACdASoUABsAPxmCuVYsqCWjqAgBkCMJYwDI1BEJ8f9FWMRTzprbGeqgcAD+5L3YmIe8hYrMbIBOgng88qR7bh0IXS2eC0mcDSbHsm1xPM9FzpXIkiXxwMt9XGvM9JkQbhdeQ/tL/M0wQukkx7Lk4ccx+SZ/WSbEjvFZZyH8s+QI7b5XhWWhkAA=",
+    "color": "rgb(56,40,40)"
+  },
+  "cierre-h": {
+    "alt": "BMW Serie 5 saliendo del taller al anochecer",
+    "width": 2000,
+    "height": 1125,
+    "aspect": 1.77778,
+    "src": "/img/cierre-h-1600.jpg",
+    "avif": [
+      {
+        "src": "/img/cierre-h-1200.avif",
+        "w": 1200
+      },
+      {
+        "src": "/img/cierre-h-1600.avif",
+        "w": 1600
+      },
+      {
+        "src": "/img/cierre-h-2000.avif",
+        "w": 2000
+      }
+    ],
+    "webp": [
+      {
+        "src": "/img/cierre-h-1200.webp",
+        "w": 1200
+      },
+      {
+        "src": "/img/cierre-h-1600.webp",
+        "w": 1600
+      },
+      {
+        "src": "/img/cierre-h-2000.webp",
+        "w": 2000
+      }
+    ],
+    "lqip": "data:image/webp;base64,UklGRmQAAABXRUJQVlA4IFgAAACQAwCdASoUAAsAPxl2slCspySisAgBkCMJYwAAUyUdvcx3QnAAAP7RWTkGNTgrtox1JWI3tNgbrS7zstf9CIfE76axeUx/szYfaAqoh+3hLAJymK1MgAAA",
+    "color": "rgb(56,40,40)"
   }
 } as const satisfies Record<string, ImgAsset>;
 

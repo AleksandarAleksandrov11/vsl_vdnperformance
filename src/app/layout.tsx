@@ -1,29 +1,19 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Chakra_Petch } from 'next/font/google';
+import { Inter_Tight } from 'next/font/google';
 import { SITE } from '@/lib/config';
 import { CONSENT_KEY } from '@/lib/consent';
 import { ConsentProvider } from '@/components/ConsentProvider';
 import './globals.css';
 
 /**
- * Chakra Petch para titulares: cuadrada, técnica y con los cortes en ángulo de
- * las letras del logo. Es la de las tres candidatas (Rajdhani, Chakra Petch,
- * Oxanium) que mejor casa con la V y la D anguladas de "VDN".
- * Inter para el cuerpo.
+ * Una sola familia para toda la página. Inter Tight tiene las formas de Inter
+ * pero más estrechas, que es lo que aguanta un titular de 96 px sin partirse en
+ * cuatro líneas y sin parecer una plantilla.
  */
-/* Sólo dos pesos: 600 para antetítulos y cifras, 700 para titulares. Cada peso
-   es un archivo más que descargar, y el resto de grosores que pide el CSS caen
-   en el más cercano de estos dos sin que se note. */
-const chakra = Chakra_Petch({
+const interTight = Inter_Tight({
   subsets: ['latin'],
-  weight: ['600', '700'],
-  variable: '--font-chakra',
-  display: 'swap',
-});
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
+  weight: ['400', '500', '600'],
+  variable: '--font-inter-tight',
   display: 'swap',
 });
 
@@ -66,12 +56,12 @@ export const metadata: Metadata = {
   },
   formatDetection: { telephone: true },
   other: {
-    'msapplication-TileColor': '#0A0A0C',
+    'msapplication-TileColor': '#050505',
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0A0A0C',
+  themeColor: '#050505',
   colorScheme: 'dark',
   width: 'device-width',
   initialScale: 1,
@@ -81,7 +71,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${inter.variable} ${chakra.variable}`}>
+    <html lang="es" className={interTight.variable}>
       <head>
         {/* Precalentamos el dominio del píxel sólo como DNS: no descarga nada
             ni deja cookies, y si el usuario acepta, el script llega antes. */}

@@ -1,45 +1,41 @@
-import { ComoFunciona } from '@/components/ComoFunciona';
-import { CtaFinal } from '@/components/CtaFinal';
-import { CurvaPotencia } from '@/components/CurvaPotencia';
+import { BarraMovil } from '@/components/BarraMovil';
+import { Cierre } from '@/components/Cierre';
+import { Cifras } from '@/components/Cifras';
 import { Faq } from '@/components/Faq';
-import { FloatingUi } from '@/components/FloatingUi';
 import { Footer } from '@/components/Footer';
 import { Formulario } from '@/components/Formulario';
 import { Garantia } from '@/components/Garantia';
-import { Header } from '@/components/Header';
+import { Grafico } from '@/components/Grafico';
 import { Hero } from '@/components/Hero';
-import { Impacto } from '@/components/Impacto';
 import { JsonLd } from '@/components/JsonLd';
-import { Marcas } from '@/components/Marcas';
-import { PorQue } from '@/components/PorQue';
+import { Nav } from '@/components/Nav';
+import { Proceso } from '@/components/Proceso';
 import { Resenas } from '@/components/Resenas';
-import { Servicios } from '@/components/Servicios';
+import { Stages } from '@/components/Stages';
 import { Trabajos } from '@/components/Trabajos';
 
 export default function Home() {
   return (
     <>
       <JsonLd />
-      <Header />
+      <Nav />
 
       <main id="contenido">
         <Hero />
-        <Marcas />
-        <PorQue />
-        <CurvaPotencia />
-        <Servicios />
-        <ComoFunciona />
-        <Impacto />
+        <Cifras />
+        <Stages />
+        <Grafico />
+        <Proceso />
         <Trabajos />
         <Resenas />
         <Garantia />
         <Formulario />
         <Faq />
-        <CtaFinal />
+        <Cierre />
       </main>
 
       <Footer />
-      <FloatingUi />
+      <BarraMovil />
     </>
   );
 }
