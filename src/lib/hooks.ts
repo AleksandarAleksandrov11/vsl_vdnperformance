@@ -100,19 +100,3 @@ export function useScrollY(): number {
   }, []);
   return y;
 }
-
-/** true mientras el elemento esté, aunque sea en parte, dentro de la pantalla. */
-export function useIsOnScreen<T extends HTMLElement>(
-  ref: React.RefObject<T | null>,
-  rootMargin = '0px',
-): boolean {
-  const [on, setOn] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || typeof IntersectionObserver === 'undefined') return;
-    const io = new IntersectionObserver(([e]) => setOn(e.isIntersecting), { rootMargin });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [ref, rootMargin]);
-  return on;
-}

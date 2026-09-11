@@ -11,7 +11,7 @@ Qué hace:
   2. Vectoriza la "N" azul y escribe src/app/icon.svg. A 16 px "VDN" no se lee;
      la N sí, y es la parte del logo que más se reconoce.
   3. Genera favicon.ico (16/32/48), apple-icon 180 (sin transparencia, con
-     fondo #0A0A0C como pide iOS), icon-192, icon-512 y icon-maskable-512.
+     fondo #050505 como pide iOS), icon-192, icon-512 y icon-maskable-512.
   4. Compone la imagen Open Graph de 1200x630.
 
 Los resultados están commiteados: no hace falta ejecutarlo salvo que cambie
@@ -35,8 +35,8 @@ PUBLIC = ROOT / "public"
 APP = ROOT / "src" / "app"
 FONTS = ROOT / "scripts" / ".fonts"
 
-INK = (10, 10, 12)
-BLUE = (30, 107, 240)
+INK = (5, 5, 5)
+BLUE = (31, 92, 255)
 BLUE_HI = (90, 160, 255)
 
 # Fuentes de Google para la imagen Open Graph.
@@ -141,7 +141,7 @@ def escribir_icon_svg(polys, bbox) -> None:
       <stop offset="100%" stop-color="#2E7BFF"/>
     </linearGradient>
   </defs>
-  <rect width="64" height="64" rx="12" fill="#0A0A0C"/>
+  <rect width="64" height="64" rx="12" fill="#050505"/>
   <path d="{d}" fill="url(#n)" fill-rule="evenodd"/>
 </svg>
 """
@@ -306,8 +306,8 @@ def main() -> None:
         "display": "standalone",
         "orientation": "portrait",
         "lang": "es-ES",
-        "theme_color": "#0A0A0C",
-        "background_color": "#0A0A0C",
+        "theme_color": "#050505",
+        "background_color": "#050505",
         "icons": [
             {"src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
             {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},

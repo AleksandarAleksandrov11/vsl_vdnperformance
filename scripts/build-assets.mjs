@@ -2,18 +2,20 @@
  * build-assets.mjs — pipeline de imágenes de vsl.vdnperformance.es
  * -----------------------------------------------------------------
  * Lee los originales de /assets-src (que NO se despliegan) y escribe en
- * /public/img las variantes AVIF + WebP + JPEG de respaldo que consume el
- * componente <Picture>.
+ * /public/img las variantes AVIF + WebP + JPEG de respaldo que consume <Picture>.
  *
  * Por cada foto:
  *   1. Orientación EXIF corregida y metadatos eliminados (incluye GPS).
- *   2. Matrícula difuminada: es un dato personal de un tercero (RGPD) y además
- *      queda más limpio. Las cajas están en PLATES (coordenadas normalizadas).
- *   3. Recorte al ratio de cada hueco de la página, manteniendo el punto focal.
- *   4. Grado de color común para que fotos con luces muy distintas casen entre sí.
- *   5. Export multi-ancho + LQIP en base64 + color dominante -> images.generated.ts
+ *   2. Matrícula difuminada: es un dato personal de un tercero (RGPD).
+ *   3. Exposición igualada. Las fotos vienen de noche, a mediodía y con
+ *      fluorescentes: sin esto, puestas una al lado de otra, cantan.
+ *   4. UN ÚNICO tratamiento de color para todas (LOOK), para que parezcan de la
+ *      misma sesión. Ni un ajuste artístico por foto.
+ *   5. Recorte al ratio de cada hueco respetando un punto focal.
+ *   6. Export multi-ancho + LQIP + color dominante -> images.generated.ts
  *
- * Uso:  npm run assets
+ * Uso:  npm run assets            (todo)
+ *       node scripts/build-assets.mjs hero cierre   (sólo esos huecos)
  */
 import sharp from 'sharp';
 import { mkdir, writeFile, rm } from 'node:fs/promises';
@@ -26,107 +28,123 @@ const OUT = path.join(ROOT, 'public', 'img');
 const MANIFEST = path.join(ROOT, 'src', 'lib', 'images.generated.ts');
 
 /* ------------------------------------------------------------------ *
- * Matrículas: [x, y, ancho, alto] en fracción del lado correspondiente.
- * Medidas a ojo sobre las fotos originales, con margen de sobra.
+ * Tratamiento común. Es el mismo para las diez fotos: es lo que hace que
+ * la página se vea de una pieza y no como un álbum de móvil.
  * ------------------------------------------------------------------ */
+const LOOK = { saturation: 0.74, contrast: 1.07 };
+
+/* Corrección de exposición por foto, sólo para llevarlas todas a un punto
+   parecido. Medido sobre la luminancia media del original; las nocturnas se
+   suben menos a propósito, porque su oscuridad es lo que las hace buenas. */
+const EXPOSICION = {
+  'IMG_20260324_210954_Original.jpeg': 1.16,
+  'IMG_0124.jpeg': 1.26,
+  'IMG_0214.jpeg': 0.9,
+  'IMG_0239.jpeg': 0.92,
+  'IMG_0326.jpeg': 0.92,
+  'IMG_0430.jpeg': 0.86,
+  'IMG_0778.jpeg': 0.95,
+  'IMG_0796.jpeg': 1.0,
+  'IMG_1188.jpeg': 0.96,
+  'IMG_1227.jpeg': 1.05,
+};
+
+/* Matrículas: [x, y, ancho, alto] en fracción del lado correspondiente. */
 const PLATES = {
   'IMG_20260324_210954_Original.jpeg': [[0.198, 0.542, 0.162, 0.058]],
   'IMG_0124.jpeg': [[0.497, 0.521, 0.168, 0.056]],
-  'IMG_0326.jpeg': [[0.292, 0.564, 0.298, 0.080]],
-  'IMG_0430.jpeg': [[0.551, 0.574, 0.223, 0.070]],
-  'IMG_0796.jpeg': [[0.741, 0.674, 0.198, 0.060]],
-  'IMG_0778.jpeg': [[0.100, 0.640, 0.160, 0.074]],
+  'IMG_0326.jpeg': [[0.292, 0.564, 0.298, 0.08]],
+  'IMG_0430.jpeg': [[0.551, 0.574, 0.223, 0.07]],
+  'IMG_0796.jpeg': [[0.741, 0.674, 0.198, 0.06]],
+  'IMG_0778.jpeg': [[0.1, 0.64, 0.16, 0.074]],
   'IMG_1188.jpeg': [[0.596, 0.572, 0.345, 0.092]],
   'IMG_1227.jpeg': [[0.108, 0.596, 0.312, 0.098]],
-  'IMG_0239.jpeg': [[0.628, 0.666, 0.300, 0.092]],
-  'IMG_0214.jpeg': [[0.300, 0.682, 0.365, 0.092]],
+  'IMG_0239.jpeg': [[0.628, 0.666, 0.3, 0.092]],
+  'IMG_0214.jpeg': [[0.3, 0.682, 0.365, 0.092]],
 };
 
 /* ------------------------------------------------------------------ *
- * Qué imagen va en cada hueco de la página.
- * focus: punto que debe quedar en el centro del recorte (0-1).
+ * Qué foto va en cada hueco. focus: punto que queda centrado en el recorte.
  * ------------------------------------------------------------------ */
 const JOBS = [
   {
     id: 'hero',
     src: 'IMG_20260324_210954_Original.jpeg',
-    alt: 'BMW Serie 3 gris saliendo del taller de VDN Performance en Collado Villalba de noche',
-    grade: { brightness: 1.04, saturation: 0.82, contrast: 1.1 },
-    /* Es la imagen que marca el LCP y encima va cubierta por dos velos oscuros:
-       admite bastante más compresión sin que se note, y cada kilobyte que se
-       quita aquí es tiempo que gana la primera impresión en móvil. */
-    calidad: { avif: 36, webp: 62 },
+    alt: 'BMW Serie 3 recién reprogramado saliendo del taller de VDN Performance de noche',
+    // Marca el LCP y va bajo un velo oscuro: aguanta más compresión.
+    calidad: { avif: 38, webp: 64 },
     variants: [
-      { name: 'hero-portrait', ratio: 3 / 4.4, widths: [420, 560, 760, 900], focus: { x: 0.43, y: 0.47 } },
-      { name: 'hero-wide', ratio: 16 / 9, widths: [1100, 1500, 1920], focus: { x: 0.44, y: 0.5 } },
+      { name: 'hero-v', ratio: 9 / 17, widths: [420, 600, 820, 1040], focus: { x: 0.45, y: 0.5 } },
+      { name: 'hero-h', ratio: 16 / 9, widths: [1200, 1600, 2000], focus: { x: 0.45, y: 0.52 } },
     ],
   },
+
+  /* --- Stages --- */
   {
-    id: 'impact',
-    src: 'IMG_0326.jpeg',
-    alt: 'BMW Serie 3 negro con los faros encendidos dentro del taller',
-    grade: { brightness: 0.94, saturation: 0.7, contrast: 1.12 },
-    variants: [
-      { name: 'impact-portrait', ratio: 3 / 4, widths: [420, 560, 820], focus: { x: 0.46, y: 0.5 } },
-      { name: 'impact-wide', ratio: 16 / 9, widths: [1100, 1500, 1920], focus: { x: 0.46, y: 0.52 } },
-    ],
-  },
-  {
-    id: 'garantia',
-    src: 'IMG_1188.jpeg',
-    alt: 'BMW Serie 5 plateado aparcado en la puerta del taller',
-    grade: { brightness: 0.99, saturation: 0.8, contrast: 1.08 },
-    variants: [{ name: 'garantia', ratio: 4 / 5, widths: [420, 620, 860], focus: { x: 0.5, y: 0.52 } }],
-  },
-  {
-    id: 'proceso',
+    id: 'stage-1',
     src: 'IMG_1227.jpeg',
-    alt: 'Audi A3 gris preparado para la diagnosis en el taller',
-    grade: { brightness: 0.9, saturation: 0.66, contrast: 1.1 },
-    variants: [{ name: 'proceso-wide', ratio: 16 / 9, widths: [760, 1200, 1600], focus: { x: 0.4, y: 0.52 } }],
+    alt: 'Audi A3 conectado para la lectura de la centralita',
+    variants: [{ name: 'stage-1', ratio: 4 / 3, widths: [420, 720, 1040], focus: { x: 0.44, y: 0.48 } }],
   },
   {
-    id: 'servicios',
-    src: 'IMG_0214.jpeg',
-    alt: 'Range Rover Sport en el puesto de trabajo del taller',
-    grade: { brightness: 0.9, saturation: 0.66, contrast: 1.1 },
-    variants: [{ name: 'servicios-wide', ratio: 16 / 9, widths: [760, 1200, 1600], focus: { x: 0.5, y: 0.55 } }],
-  },
-  {
-    id: 'dyno',
-    src: 'IMG_0239.jpeg',
-    alt: 'Audi A3 blanco esperando su reprogramación',
-    grade: { brightness: 0.86, saturation: 0.6, contrast: 1.12 },
-    variants: [{ name: 'dyno-wide', ratio: 16 / 9, widths: [760, 1200, 1600], focus: { x: 0.52, y: 0.55 } }],
-  },
-  /* --- Galería "Trabajos reales" --- */
-  {
-    id: 'work-e46-330d',
-    src: 'IMG_0796.jpeg',
-    alt: 'BMW E46 330d azul oscuro reprogramado en Stage 1 por VDN Performance',
-    grade: { brightness: 1.0, saturation: 0.84, contrast: 1.1 },
-    variants: [{ name: 'work-e46-330d', ratio: 4 / 5, widths: [380, 560, 780], focus: { x: 0.52, y: 0.56 } }],
-  },
-  {
-    id: 'work-e46-320i',
-    src: 'IMG_0430.jpeg',
-    alt: 'BMW E46 320i plateado con Stage 1 y Hardcut',
-    grade: { brightness: 0.98, saturation: 0.8, contrast: 1.1 },
-    variants: [{ name: 'work-e46-320i', ratio: 4 / 5, widths: [380, 560, 780], focus: { x: 0.52, y: 0.5 } }],
-  },
-  {
-    id: 'work-e60-530d',
-    src: 'IMG_0124.jpeg',
-    alt: 'BMW E60 530d negro con Stage 2 y más de 80 CV de ganancia',
-    grade: { brightness: 1.08, saturation: 0.82, contrast: 1.12 },
-    variants: [{ name: 'work-e60-530d', ratio: 4 / 5, widths: [380, 560, 780], focus: { x: 0.52, y: 0.48 } }],
-  },
-  {
-    id: 'work-audi-diag',
+    id: 'stage-2',
     src: 'IMG_0778.jpeg',
-    alt: 'Audi TDI con el capó abierto durante la diagnosis previa a la reprogramación',
-    grade: { brightness: 1.02, saturation: 0.78, contrast: 1.1 },
-    variants: [{ name: 'work-audi-diag', ratio: 4 / 5, widths: [380, 560, 780], focus: { x: 0.42, y: 0.52 } }],
+    alt: 'Audi con el capó abierto durante el trabajo mecánico',
+    variants: [{ name: 'stage-2', ratio: 4 / 3, widths: [420, 720, 1040], focus: { x: 0.44, y: 0.45 } }],
+  },
+  {
+    id: 'stage-3',
+    src: 'IMG_1188.jpeg',
+    alt: 'BMW Serie 5 preparado en el taller',
+    variants: [{ name: 'stage-3', ratio: 4 / 3, widths: [420, 720, 1040], focus: { x: 0.5, y: 0.5 } }],
+  },
+
+  /* --- Proceso --- */
+  {
+    id: 'paso-1',
+    src: 'IMG_0239.jpeg',
+    alt: 'Audi A3 esperando su turno en el taller',
+    variants: [{ name: 'paso-1', ratio: 4 / 5, widths: [420, 720, 1000], focus: { x: 0.64, y: 0.5 } }],
+  },
+  {
+    id: 'paso-2',
+    src: 'IMG_0214.jpeg',
+    alt: 'Range Rover Sport en el puesto de trabajo',
+    variants: [{ name: 'paso-2', ratio: 4 / 5, widths: [420, 720, 1000], focus: { x: 0.5, y: 0.52 } }],
+  },
+  {
+    id: 'paso-3',
+    src: 'IMG_0326.jpeg',
+    alt: 'BMW Serie 3 listo para salir del taller',
+    variants: [{ name: 'paso-3', ratio: 4 / 5, widths: [420, 720, 1000], focus: { x: 0.47, y: 0.5 } }],
+  },
+
+  /* --- Trabajos (todas las tarjetas comparten ratio 4:5 y anchos) --- */
+  ...[
+    ['work-e46-330d', 'IMG_0796.jpeg', 'BMW E46 330d con Stage 1', { x: 0.52, y: 0.54 }],
+    ['work-e46-320i', 'IMG_0430.jpeg', 'BMW E46 320i con Stage 1', { x: 0.52, y: 0.5 }],
+    ['work-e60-530d', 'IMG_0124.jpeg', 'BMW E60 530d con Stage 2', { x: 0.52, y: 0.5 }],
+    ['work-a4-tdi', 'IMG_0778.jpeg', 'Audi TDI en la puesta a punto', { x: 0.42, y: 0.5 }],
+    ['work-e90', 'IMG_0326.jpeg', 'BMW Serie 3 E90 reprogramado', { x: 0.46, y: 0.5 }],
+    ['work-a3', 'IMG_1227.jpeg', 'Audi A3 reprogramado', { x: 0.44, y: 0.5 }],
+    ['work-rrsport', 'IMG_0214.jpeg', 'Range Rover Sport reprogramado', { x: 0.5, y: 0.55 }],
+  ].map(([name, src, alt, focus]) => ({
+    id: name,
+    src,
+    alt,
+    variants: [{ name, ratio: 4 / 5, widths: [320, 460, 640], focus }],
+  })),
+
+  /* --- Cierre --- */
+  {
+    id: 'cierre',
+    src: 'IMG_0124.jpeg',
+    alt: 'BMW Serie 5 saliendo del taller al anochecer',
+    calidad: { avif: 40, webp: 66 },
+    variants: [
+      { name: 'cierre-v', ratio: 3 / 4, widths: [420, 620, 860], focus: { x: 0.5, y: 0.5 } },
+      { name: 'cierre-h', ratio: 16 / 9, widths: [1200, 1600, 2000], focus: { x: 0.5, y: 0.52 } },
+    ],
   },
 ];
 
@@ -148,9 +166,9 @@ function cropBox(W, H, ratio, focus) {
 }
 
 /**
- * Difumina cada matrícula: recorta la zona, la desenfoca muy fuerte, le baja el
- * detalle y la vuelve a pegar. No queda un rectángulo plano feo, sino una
- * matrícula "fuera de foco" que pasa desapercibida.
+ * Difumina cada matrícula: recorta la zona, la reduce a un puñado de píxeles,
+ * la estira otra vez y la desenfoca. No queda un rectángulo plano, sino una
+ * matrícula fuera de foco que pasa desapercibida.
  */
 async function blurPlates(pipeline, boxes, W, H) {
   if (!boxes?.length) return pipeline;
@@ -175,13 +193,12 @@ async function blurPlates(pipeline, boxes, W, H) {
 }
 
 const enc = {
-  avif: { quality: 52, effort: 6, chromaSubsampling: '4:2:0' },
-  webp: { quality: 74, effort: 6, smartSubsample: true },
-  jpeg: { quality: 72, progressive: true, mozjpeg: true, chromaSubsampling: '4:2:0' },
+  avif: { quality: 46, effort: 6, chromaSubsampling: '4:2:0' },
+  webp: { quality: 72, effort: 6, smartSubsample: true },
+  jpeg: { quality: 70, progressive: true, mozjpeg: true, chromaSubsampling: '4:2:0' },
 };
 
 async function run() {
-  // `node scripts/build-assets.mjs hero impact` regenera sólo esos huecos.
   const only = process.argv.slice(2);
   if (!only.length) await rm(OUT, { recursive: true, force: true });
   await mkdir(OUT, { recursive: true });
@@ -196,13 +213,13 @@ async function run() {
     const W = meta.autoOrient?.width ?? meta.width;
     const H = meta.autoOrient?.height ?? meta.height;
 
-    // Base: orientación corregida + matrículas difuminadas + grado de color.
     let base = sharp(file).rotate();
     base = await blurPlates(base, PLATES[job.src], W, H);
-    const g = job.grade ?? {};
+
+    const exposicion = EXPOSICION[job.src] ?? 1;
     const graded = await base
-      .modulate({ brightness: g.brightness ?? 1, saturation: g.saturation ?? 1 })
-      .linear(g.contrast ?? 1, -(128 * ((g.contrast ?? 1) - 1)))
+      .modulate({ brightness: exposicion, saturation: LOOK.saturation })
+      .linear(LOOK.contrast, -(128 * (LOOK.contrast - 1)))
       .png({ compressionLevel: 3 })
       .toBuffer();
 
@@ -210,7 +227,6 @@ async function run() {
       const box = cropBox(W, H, v.ratio, v.focus);
       const cropped = sharp(graded).extract(box);
       const sources = { avif: [], webp: [] };
-      let fallback = '';
 
       for (const width of v.widths) {
         const height = Math.round(width / v.ratio);
@@ -220,16 +236,16 @@ async function run() {
           .toBuffer();
 
         for (const fmt of ['avif', 'webp']) {
-          const out = path.join(OUT, `${v.name}-${width}.${fmt}`);
           const opciones = { ...enc[fmt] };
           if (job.calidad?.[fmt]) opciones.quality = job.calidad[fmt];
+          const out = path.join(OUT, `${v.name}-${width}.${fmt}`);
           const info = await sharp(resized)[fmt](opciones).toFile(out);
           totalBytes += info.size;
           sources[fmt].push({ src: `/img/${v.name}-${width}.${fmt}`, w: width });
         }
       }
 
-      // Respaldo JPEG en el ancho intermedio, sólo por si falla AVIF y WebP.
+      // Respaldo JPEG en el ancho intermedio, sólo por si fallan AVIF y WebP.
       const fw = v.widths[Math.min(1, v.widths.length - 1)];
       const fbInfo = await cropped
         .clone()
@@ -237,9 +253,7 @@ async function run() {
         .jpeg(enc.jpeg)
         .toFile(path.join(OUT, `${v.name}-${fw}.jpg`));
       totalBytes += fbInfo.size;
-      fallback = `/img/${v.name}-${fw}.jpg`;
 
-      // LQIP: 20px de ancho en WebP, va inline en el HTML como background.
       const lqipBuf = await cropped.clone().resize(20).webp({ quality: 28 }).toBuffer();
       const { dominant } = await cropped.clone().resize(64).stats();
 
@@ -248,7 +262,7 @@ async function run() {
         width: v.widths[v.widths.length - 1],
         height: Math.round(v.widths[v.widths.length - 1] / v.ratio),
         aspect: Number(v.ratio.toFixed(5)),
-        src: fallback,
+        src: `/img/${v.name}-${fw}.jpg`,
         avif: sources.avif,
         webp: sources.webp,
         lqip: `data:image/webp;base64,${lqipBuf.toString('base64')}`,
