@@ -1,0 +1,32 @@
+{
+  "name": "VDN Performance",
+  "short_name": "VDN",
+  "description": "Reprogramación de centralitas en Collado Villalba. Stage 1 desde 219 €.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "lang": "es-ES",
+  "theme_color": "#0A0A0C",
+  "background_color": "#0A0A0C",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

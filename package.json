@@ -1,0 +1,30 @@
+{
+  "name": "vsl-vdnperformance",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "npx serve@latest out -l 3000",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "assets": "node scripts/build-assets.mjs"
+  },
+  "dependencies": {
+    "framer-motion": "^13.2.0",
+    "next": "16.3.4",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "lighthouse": "^13.4.1",
+    "playwright": "^1.63.0",
+    "sharp": "^0.34.4",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~5.9.3"
+  }
+}
