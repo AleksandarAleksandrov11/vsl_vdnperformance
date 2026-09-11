@@ -105,27 +105,43 @@ export function RevealImg({
    Estructura
    ========================================================================== */
 
+/** Fondos disponibles. Dos secciones seguidas nunca comparten tono. */
+export type Tono = 'void' | 'surface' | 'paper' | 'paper-2';
+/** Textura opcional encima del tono, siempre hecha con CSS. */
+export type Textura = 'grid' | 'glow' | 'glow-b' | 'grain' | 'rule';
+
+const TONOS: Record<Tono, string> = {
+  void: 'bg-void',
+  surface: 'bg-surface',
+  paper: 'bg-paper text-ink-dark',
+  'paper-2': 'bg-paper-2 text-ink-dark',
+};
+
 export function Section({
   id,
   children,
   className = '',
   labelledBy,
-  light = false,
+  tone = 'void',
+  textura,
 }: {
   id?: string;
   children: ReactNode;
   className?: string;
   labelledBy?: string;
-  /** Sección clara. Sólo reseñas y garantía. */
-  light?: boolean;
+  tone?: Tono;
+  textura?: Textura;
 }) {
   return (
     <section
       id={id}
       aria-labelledby={labelledBy}
-      className={`section-y relative ${light ? 'bg-paper text-ink-dark' : 'bg-void'} ${className}`}
+      className={`section-y relative isolate ${TONOS[tone]} ${
+        textura ? `tex-${textura}` : ''
+      } ${className}`}
     >
-      {children}
+      {/* El contenido va por encima de la textura, que vive en un ::before. */}
+      <div className="relative z-10">{children}</div>
     </section>
   );
 }

@@ -18,7 +18,7 @@ export const IMAGES = {
     "width": 1040,
     "height": 1964,
     "aspect": 0.52941,
-    "src": "/img/hero-v-600.jpg",
+    "src": "/img/hero-v-600.webp",
     "avif": [
       {
         "src": "/img/hero-v-420.avif",
@@ -63,7 +63,7 @@ export const IMAGES = {
     "width": 2000,
     "height": 1125,
     "aspect": 1.77778,
-    "src": "/img/hero-h-1600.jpg",
+    "src": "/img/hero-h-1600.webp",
     "avif": [
       {
         "src": "/img/hero-h-1200.avif",
@@ -100,7 +100,7 @@ export const IMAGES = {
     "width": 1040,
     "height": 780,
     "aspect": 1.33333,
-    "src": "/img/stage-1-720.jpg",
+    "src": "/img/stage-1-720.webp",
     "avif": [
       {
         "src": "/img/stage-1-420.avif",
@@ -137,7 +137,7 @@ export const IMAGES = {
     "width": 1040,
     "height": 780,
     "aspect": 1.33333,
-    "src": "/img/stage-2-720.jpg",
+    "src": "/img/stage-2-720.webp",
     "avif": [
       {
         "src": "/img/stage-2-420.avif",
@@ -174,7 +174,7 @@ export const IMAGES = {
     "width": 1040,
     "height": 780,
     "aspect": 1.33333,
-    "src": "/img/stage-3-720.jpg",
+    "src": "/img/stage-3-720.webp",
     "avif": [
       {
         "src": "/img/stage-3-420.avif",
@@ -211,7 +211,7 @@ export const IMAGES = {
     "width": 1000,
     "height": 1250,
     "aspect": 0.8,
-    "src": "/img/paso-1-720.jpg",
+    "src": "/img/paso-1-720.webp",
     "avif": [
       {
         "src": "/img/paso-1-420.avif",
@@ -240,7 +240,7 @@ export const IMAGES = {
         "w": 1000
       }
     ],
-    "lqip": "data:image/webp;base64,UklGRpQAAABXRUJQVlA4IIgAAADQBACdASoUABkAPxmAtFUsp6SjKAqpkCMJZQDDNBE8gVE27n5kpxsY1Nv5DvqxgAD6nCGX7BCXQKlRwDKu6aCoFZ5ZTiO6QFqeFbJ5WeDrwvGoHLGceLa5mUXXrsQFCxnpQi9FOfP3vs9Xt06U0/bB01JUsvHe7Xi3CMx33FX/nTzLH0EAAAAA",
+    "lqip": "data:image/webp;base64,UklGRpwAAABXRUJQVlA4IJAAAACwBACdASoUABkAPxmAs1UsqCQjKAqpkCMJZQC7AA352d63xvpPmDaJJBz4L07AAPYow4MOMJKpCYsPbH78tfBaPfCo+de8G+8wN7fWsFG4sYuM8Qo+CxmfRK9UuRaAlWjfA51O7irVWw2pGBa5WewSUypQcKsmZerWjxqGkRT+fcM3DmXs1JPuGruO0jBAAAA=",
     "color": "rgb(152,136,120)"
   },
   "paso-2": {
@@ -248,7 +248,7 @@ export const IMAGES = {
     "width": 1000,
     "height": 1250,
     "aspect": 0.8,
-    "src": "/img/paso-2-720.jpg",
+    "src": "/img/paso-2-720.webp",
     "avif": [
       {
         "src": "/img/paso-2-420.avif",
@@ -285,7 +285,7 @@ export const IMAGES = {
     "width": 1000,
     "height": 1250,
     "aspect": 0.8,
-    "src": "/img/paso-3-720.jpg",
+    "src": "/img/paso-3-720.webp",
     "avif": [
       {
         "src": "/img/paso-3-420.avif",
@@ -322,7 +322,7 @@ export const IMAGES = {
     "width": 640,
     "height": 800,
     "aspect": 0.8,
-    "src": "/img/work-e46-330d-460.jpg",
+    "src": "/img/work-e46-330d-460.webp",
     "avif": [
       {
         "src": "/img/work-e46-330d-320.avif",
@@ -359,7 +359,7 @@ export const IMAGES = {
     "width": 640,
     "height": 800,
     "aspect": 0.8,
-    "src": "/img/work-e46-320i-460.jpg",
+    "src": "/img/work-e46-320i-460.webp",
     "avif": [
       {
         "src": "/img/work-e46-320i-320.avif",
@@ -396,7 +396,7 @@ export const IMAGES = {
     "width": 640,
     "height": 800,
     "aspect": 0.8,
-    "src": "/img/work-e60-530d-460.jpg",
+    "src": "/img/work-e60-530d-460.webp",
     "avif": [
       {
         "src": "/img/work-e60-530d-320.avif",
@@ -433,7 +433,7 @@ export const IMAGES = {
     "width": 640,
     "height": 800,
     "aspect": 0.8,
-    "src": "/img/work-a4-tdi-460.jpg",
+    "src": "/img/work-a4-tdi-460.webp",
     "avif": [
       {
         "src": "/img/work-a4-tdi-320.avif",
@@ -470,7 +470,7 @@ export const IMAGES = {
     "width": 640,
     "height": 800,
     "aspect": 0.8,
-    "src": "/img/work-e90-460.jpg",
+    "src": "/img/work-e90-460.webp",
     "avif": [
       {
         "src": "/img/work-e90-320.avif",
@@ -507,7 +507,7 @@ export const IMAGES = {
     "width": 640,
     "height": 800,
     "aspect": 0.8,
-    "src": "/img/work-a3-460.jpg",
+    "src": "/img/work-a3-460.webp",
     "avif": [
       {
         "src": "/img/work-a3-320.avif",
@@ -544,7 +544,7 @@ export const IMAGES = {
     "width": 640,
     "height": 800,
     "aspect": 0.8,
-    "src": "/img/work-rrsport-460.jpg",
+    "src": "/img/work-rrsport-460.webp",
     "avif": [
       {
         "src": "/img/work-rrsport-320.avif",
@@ -581,7 +581,7 @@ export const IMAGES = {
     "width": 860,
     "height": 1147,
     "aspect": 0.75,
-    "src": "/img/cierre-v-620.jpg",
+    "src": "/img/cierre-v-620.webp",
     "avif": [
       {
         "src": "/img/cierre-v-420.avif",
@@ -618,7 +618,7 @@ export const IMAGES = {
     "width": 2000,
     "height": 1125,
     "aspect": 1.77778,
-    "src": "/img/cierre-h-1600.jpg",
+    "src": "/img/cierre-h-1600.webp",
     "avif": [
       {
         "src": "/img/cierre-h-1200.avif",

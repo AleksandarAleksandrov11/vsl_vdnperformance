@@ -47,7 +47,7 @@ for (const width of [360, 390, 430, 1440]) {
     const doc = document.documentElement;
     const grupos = {
       cifras: '[aria-label="VDN Performance en cifras"] li',
-      trabajos: '[aria-label="Trabajos realizados"] > article',
+      trabajos: '[aria-label="Trabajos realizados"] article',
       resenas: '[aria-label="Opiniones de clientes en Google"] > div figure, .lg\\:block ul > li figure',
     };
     const medidas = {};

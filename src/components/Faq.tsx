@@ -13,9 +13,9 @@ export function Faq() {
   const [abierta, setAbierta] = useState<number | null>(null);
 
   return (
-    <Section id="dudas" labelledBy="faq-t">
+    <Section id="dudas" tone="surface" textura="glow-b" labelledBy="faq-t">
       <div className="shell">
-        <Titular id="faq-t" lineas={['Dudas.']} className={H2_CLASS} />
+        <Titular id="faq-t" lineas={['Preguntas', 'frecuentes.']} className={H2_CLASS} />
 
         <ul className="mt-12 border-t border-hair lg:mt-16">
           {FAQ.map((f, i) => {

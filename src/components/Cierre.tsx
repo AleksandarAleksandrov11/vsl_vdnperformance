@@ -23,7 +23,7 @@ export function Cierre() {
       </div>
 
       <div className="shell relative z-10 pb-20 lg:pb-28">
-        <Titular id="cierre-t" lineas={['Tu coche.', 'Sin freno.']} className={`${H1_CLASS} max-w-[12ch]`} />
+        <Titular id="cierre-t" lineas={['Tu coche.', 'Más divertido.']} className={`${H1_CLASS} max-w-[12ch]`} />
 
         <Reveal delay={160}>
           <BotonCalcular className="mt-10 w-full sm:w-auto" />

@@ -24,7 +24,7 @@ export function Nav() {
 
         <a
           href={`#${FORM_ID}`}
-          className="inline-flex h-11 items-center rounded-full border border-white/20 px-5 text-[0.8125rem] font-medium text-ink transition-colors duration-300 hover:border-white/40"
+          className="inline-flex h-11 items-center rounded-full bg-accent px-5 text-[0.8125rem] font-medium text-white transition-colors duration-300 hover:bg-accent-hi"
         >
           Calcular
         </a>

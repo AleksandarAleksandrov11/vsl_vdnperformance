@@ -12,7 +12,7 @@ export function Garantia() {
   return (
     <section
       aria-labelledby="garantia-t"
-      className="bg-paper pt-24 pb-24 text-center text-ink-dark lg:pt-40 lg:pb-40"
+      className="relative isolate bg-paper-2 pt-20 pb-20 text-center text-ink-dark lg:pt-32 lg:pb-32"
     >
       <div className="shell">
         <Titular
@@ -23,7 +23,7 @@ export function Garantia() {
 
         <Reveal delay={140}>
           <p className="mx-auto mt-6 max-w-[32ch] text-[1.0625rem] text-muted-dark">
-            Si no notas la diferencia, volvemos a original.
+            Si no notas la diferencia, volvemos a dejarlo de serie.
           </p>
 
           <BotonPrincipal href={`#${FORM_ID}`} className="mt-10 w-full sm:w-auto">

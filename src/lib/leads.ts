@@ -82,11 +82,18 @@ export type Lead = {
 export async function enviarLead(lead: Lead): Promise<{ ok: boolean }> {
   const datos = new URLSearchParams({ ...lead, ...leerUtm() });
 
+  /* Con cobertura mala una petición se puede quedar colgada minutos. Ocho
+     segundos y se corta: es mejor enseñar la pantalla final con el botón de
+     WhatsApp que dejar a alguien mirando un "Enviando...". */
+  const corte = AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined;
+
   try {
     await fetch(SHEETS_WEBHOOK_URL, {
       method: 'POST',
       mode: 'no-cors',
       body: datos,
+      signal: corte,
+      keepalive: true,
     });
     return { ok: true };
   } catch {
