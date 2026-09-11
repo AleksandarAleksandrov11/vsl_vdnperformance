@@ -113,21 +113,21 @@ Cinco pantallas, una pregunta en cada una. Al enviar:
    saber si la hoja lo guardó. Si algo ha ido mal, el botón de WhatsApp de esa
    pantalla recupera el contacto.
 
-### Pendiente: actualizar el Apps Script
+### Por qué se manda `objetivo` además de `potencia`
 
-Se mandó un lead de prueba y llega a la hoja, pero el Apps Script que hay
-publicado se ha quedado desfasado respecto a las cabeceras:
+Son el mismo dato. El Apps Script publicado llena su columna «Potencia de
+serie» leyendo un campo llamado `objetivo`, no `potencia`, así que se mandan
+los dos nombres y el script usa el que conozca. Se comprobó enviando ambos
+valores por separado y mirando en cuál caía la celda.
 
-- **La potencia de serie no se guarda.** La web la manda, la hoja no tiene
-  columna para ella y se pierde.
-- **Las tres columnas `utm_` y el `Estado` caen una columna a la izquierda** de
-  su cabecera, porque el script escribe la fila como una lista fija y la
-  columna «Objetivo» queda sin rellenar.
+Si algún día se despliega el script de `docs/apps-script.gs` —que busca cada
+valor por el nombre de la cabecera y espera `potencia`— seguirá funcionando
+igual: el campo que no use lo ignora. Cuando eso pase se puede quitar el alias
+de `enviarLead`, en `src/lib/leads.ts`.
 
-En `docs/apps-script.gs` está el script corregido: busca cada valor por el
-nombre de la cabecera, así que las columnas se pueden mover o renombrar sin
-tocar el código. Para instalarlo, renombra «Objetivo» a «Potencia de serie» en
-la hoja y sigue los pasos que vienen en el propio archivo.
+Las tres columnas `utm_` sólo se rellenan si la visita llega por un enlace que
+los traiga, que es lo que hacen los anuncios. Entrando a la web a pelo salen
+vacías, y es lo correcto.
 
 `event_id` es un UUID que se manda a la vez a la hoja y al evento `Lead` del
 píxel, para poder conectar la API de Conversiones sin duplicar conversiones.

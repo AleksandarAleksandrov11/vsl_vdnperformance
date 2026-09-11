@@ -361,7 +361,7 @@
   z-index: 100;
   overflow: hidden;
   pointer-events: none;
-  animation: intro-fin 1.28s steps(1, end) forwards;
+  animation: intro-fin 1s steps(1, end) forwards;
 }
 
 /* El negro que se retira hacia la derecha, justo por detrás del coche. */
@@ -370,7 +370,7 @@
   inset: 0;
   background: var(--color-void);
   clip-path: inset(0 0 0 0);
-  animation: intro-abre 880ms cubic-bezier(0.36, 0.02, 0.32, 1) 210ms forwards;
+  animation: intro-abre 685ms cubic-bezier(0.36, 0.02, 0.32, 1) 165ms forwards;
 }
 
 .intro-pista {
@@ -382,16 +382,14 @@
   position: absolute;
   top: 50%;
   left: 0;
-  /* Más ancho que la pantalla a propósito: un coche que no cabe se lee como
-     un coche que pasa cerca y rápido. */
-  width: 132vw;
-  transform: translate3d(-125%, -50%, 0);
-  animation: intro-pasa 1000ms cubic-bezier(0.36, 0.02, 0.32, 1) forwards;
+  width: 64vw;
+  transform: translate3d(calc(-100% - 4vw), -50%, 0);
+  animation: intro-pasa 780ms cubic-bezier(0.36, 0.02, 0.32, 1) forwards;
 }
 
 @media (min-width: 48rem) {
   .intro-coche {
-    width: 66vw;
+    width: 26vw;
   }
 }
 
@@ -404,7 +402,7 @@
   width: 18vw;
   background: linear-gradient(to right, rgba(75, 125, 255, 0) 0%, rgba(120, 160, 255, 0.22) 72%, rgba(220, 234, 255, 0.5) 100%);
   transform: translate3d(-100%, 0, 0);
-  animation: intro-filo 880ms cubic-bezier(0.36, 0.02, 0.32, 1) 210ms forwards;
+  animation: intro-filo 685ms cubic-bezier(0.36, 0.02, 0.32, 1) 165ms forwards;
 }
 
 @keyframes intro-filo {
@@ -429,15 +427,15 @@
   background: linear-gradient(to right, transparent, rgba(140, 170, 255, 0.55), transparent);
   transform: translate3d(-110%, 0, 0);
   opacity: 0;
-  animation: intro-raya 900ms cubic-bezier(0.36, 0.02, 0.32, 1) var(--d) forwards;
+  animation: intro-raya 720ms cubic-bezier(0.36, 0.02, 0.32, 1) var(--d) forwards;
 }
 
 @keyframes intro-pasa {
   from {
-    transform: translate3d(-101%, -50%, 0);
+    transform: translate3d(calc(-100% - 4vw), -50%, 0);
   }
   to {
-    transform: translate3d(78%, -50%, 0);
+    transform: translate3d(calc(100vw + 4vw), -50%, 0);
   }
 }
 

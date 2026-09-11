@@ -17,7 +17,7 @@ export function Cifras() {
               key={c.pie}
               as="li"
               delay={i * 80}
-              className="flex flex-col justify-center pr-5"
+              className="flex flex-col items-center justify-center text-center lg:items-start lg:pr-5 lg:text-left"
             >
               <p className="num text-[clamp(2rem,7vw,3.25rem)] leading-none font-medium tracking-[-0.03em] text-ink">
                 <Contador

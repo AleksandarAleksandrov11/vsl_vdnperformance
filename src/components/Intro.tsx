@@ -37,99 +37,58 @@ export function Intro() {
   );
 }
 
-/** Coupé de perfil, morro a la derecha. Silueta, no ilustración: en 0,8 s a
-    toda velocidad lo que se lee es el contorno, las llantas y la luz de canto. */
+/**
+ * BMW E46 coupé de perfil, morro a la derecha. Silueta mínima.
+ *
+ * A este tamaño y en menos de un segundo sólo se lee el contorno, así que el
+ * dibujo se queda en lo que de verdad identifica al coche: las proporciones
+ * (voladizos cortos, capó largo, invernadero alto), el quiebre Hofmeister del
+ * cristal trasero y dos ruedas. Nada de tiradores, retrovisores ni pliegues:
+ * a 70 px de alto no se ven y sólo ensucian.
+ */
 function Coupe() {
   return (
-    <svg viewBox="0 0 1240 420" className="h-auto w-full" focusable="false">
+    <svg viewBox="0 0 1180 360" className="h-auto w-full" focusable="false">
       <defs>
         <linearGradient id="vdn-luz" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#1f5cff" stopOpacity=".1" />
-          <stop offset=".26" stopColor="#4b7dff" stopOpacity=".8" />
-          <stop offset=".6" stopColor="#eaf1ff" />
-          <stop offset=".88" stopColor="#4b7dff" stopOpacity=".7" />
-          <stop offset="1" stopColor="#1f5cff" stopOpacity=".1" />
-        </linearGradient>
-        <linearGradient id="vdn-chapa" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#343b4c" />
-          <stop offset=".45" stopColor="#171a22" />
-          <stop offset="1" stopColor="#0a0b0f" />
+          <stop offset="0" stopColor="#4b7dff" stopOpacity=".35" />
+          <stop offset=".55" stopColor="#eaf1ff" />
+          <stop offset="1" stopColor="#4b7dff" stopOpacity=".35" />
         </linearGradient>
         <radialGradient id="vdn-halo" cx=".5" cy=".5" r=".5">
-          <stop offset="0" stopColor="#1f5cff" stopOpacity=".28" />
-          <stop offset=".6" stopColor="#1f5cff" stopOpacity=".08" />
+          <stop offset="0" stopColor="#1f5cff" stopOpacity=".3" />
           <stop offset="1" stopColor="#1f5cff" stopOpacity="0" />
         </radialGradient>
-        <linearGradient id="vdn-haz" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#dceaff" stopOpacity=".55" />
-          <stop offset="1" stopColor="#dceaff" stopOpacity="0" />
-        </linearGradient>
-        <linearGradient id="vdn-brillo" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#8da4d6" stopOpacity="0" />
-          <stop offset=".5" stopColor="#a9bce6" stopOpacity=".45" />
-          <stop offset="1" stopColor="#8da4d6" stopOpacity="0" />
-        </linearGradient>
       </defs>
 
-      {/* Halo bajo el coche: sin él la silueta se funde con el negro del panel. */}
-      <ellipse cx="640" cy="300" rx="560" ry="120" fill="url(#vdn-halo)" />
-
-      {/* Haz del faro, hacia delante. */}
-      <path fill="url(#vdn-haz)" d="M 1150 214 L 1240 176 L 1240 268 L 1150 240 Z" />
-
-      {/* Carrocería: capó largo, habitáculo atrasado, techo bajo y colín corto. */}
-      <path
-        fill="url(#vdn-chapa)"
-        d="M 1212 292 C 1224 270, 1214 244, 1190 230 C 1160 214, 1108 204, 1046 198 L 892 186 C 862 150, 826 122, 780 106 C 712 84, 620 88, 552 110 C 500 126, 452 152, 414 176 L 226 168 C 198 167, 180 176, 172 194 C 164 212, 164 244, 170 264 L 168 292 L 214 288 A 108 108 0 0 1 398 288 C 408 302, 422 308, 446 308 L 814 308 C 840 308, 854 302, 864 288 A 108 108 0 0 1 1050 288 C 1070 300, 1110 302, 1150 300 Z"
-      />
+      {/* Halo: sobre negro puro, una silueta oscura se funde con el fondo. */}
+      <ellipse cx="600" cy="250" rx="520" ry="120" fill="url(#vdn-halo)" />
 
       <path
-        fill="url(#vdn-brillo)"
-        opacity=".5"
-        d="M 300 230 C 520 252, 800 252, 1020 230 L 1020 246 C 800 268, 520 268, 300 246 Z"
+        fill="#171b24"
+        d="M 1046 296 C 1058 276, 1058 238, 1046 208 C 1038 190, 1026 180, 1010 176 C 918 168, 812 160, 700 154 C 664 132, 622 94, 578 62 C 552 54, 506 52, 470 54 C 452 55, 436 58, 422 62 C 396 98, 348 142, 312 152 C 268 156, 226 160, 192 166 C 168 174, 154 188, 150 210 C 146 236, 150 274, 160 296 L 262 288 A 74 74 0 0 1 404 288 C 412 296, 416 300, 424 300 L 800 300 C 808 300, 812 296, 820 288 A 74 74 0 0 1 962 288 C 994 296, 1020 298, 1046 296 Z"
       />
 
-      {/* Cristales. El trasero sube hacia delante: es el quiebre Hofmeister. */}
-      <g fill="#232936">
-        <path d="M 876 186 C 850 154, 820 130, 782 116 L 742 106 L 742 182 Z" />
-        <path d="M 718 106 L 718 182 L 520 182 C 548 156, 588 132, 634 118 C 660 110, 690 106, 718 106 Z" />
-        <path d="M 498 182 C 524 156, 556 134, 588 118 L 552 126 C 506 146, 466 166, 440 180 L 452 182 Z" />
+      {/* Los dos cristales. El trasero lleva abajo el quiebre Hofmeister. */}
+      <g fill="#2b3446">
+        <path d="M 694 148 C 664 130, 626 96, 584 66 L 512 62 L 506 144 Z" />
+        <path d="M 492 62 L 444 60 C 424 80, 406 106, 398 124 L 424 147 L 498 145 Z" />
       </g>
 
-      <path fill="#111319" d="M 880 188 L 934 196 C 943 197, 942 209, 932 209 L 880 204 Z" />
-
-      <path fill="#e8f0ff" d="M 1142 206 C 1168 212, 1190 222, 1202 232 L 1176 242 C 1162 230, 1142 220, 1122 214 Z" />
-      <path fill="#ff4040" d="M 172 196 C 184 182, 204 174, 232 170 L 236 190 C 212 193, 192 199, 180 208 Z" />
-
-      <g fill="#08080b">
-        <rect x="186" y="280" width="24" height="13" rx="6.5" />
-        <rect x="216" y="280" width="24" height="13" rx="6.5" />
-        <path d="M 1136 280 C 1170 278, 1196 271, 1212 262 L 1214 282 C 1194 292, 1168 296, 1138 296 Z" />
-      </g>
-
-      {/* Ruedas. La pinza azul es lo único de color que se ve en movimiento. */}
       <g>
-        <circle cx="306" cy="264" r="92" fill="#121419" stroke="#262a33" strokeWidth="4" />
-        <circle cx="306" cy="264" r="62" fill="#0b0c10" />
-        <g stroke="#474d5c" strokeWidth="8" strokeLinecap="round">
-          <path d="M306 226 L306 202 M333 237 L350 220 M344 264 L368 264 M333 291 L350 308 M306 302 L306 326 M279 291 L262 308 M268 264 L244 264 M279 237 L262 220" />
-        </g>
-        <circle cx="306" cy="264" r="26" fill="none" stroke="#1f5cff" strokeWidth="6" opacity=".85" />
-
-        <circle cx="958" cy="264" r="92" fill="#121419" stroke="#262a33" strokeWidth="4" />
-        <circle cx="958" cy="264" r="62" fill="#0b0c10" />
-        <g stroke="#474d5c" strokeWidth="8" strokeLinecap="round">
-          <path d="M958 226 L958 202 M985 237 L1002 220 M996 264 L1020 264 M985 291 L1002 308 M958 302 L958 326 M931 291 L914 308 M920 264 L896 264 M931 237 L914 220" />
-        </g>
-        <circle cx="958" cy="264" r="26" fill="none" stroke="#1f5cff" strokeWidth="6" opacity=".85" />
+        <circle cx="333" cy="266" r="64" fill="#0d0f14" />
+        <circle cx="333" cy="266" r="26" fill="none" stroke="#1f5cff" strokeWidth="7" opacity=".9" />
+        <circle cx="891" cy="266" r="64" fill="#0d0f14" />
+        <circle cx="891" cy="266" r="26" fill="none" stroke="#1f5cff" strokeWidth="7" opacity=".9" />
       </g>
 
+      {/* Luz de canto por el filo superior: es lo que dibuja la silueta. */}
       <path
         fill="none"
         stroke="url(#vdn-luz)"
         strokeWidth="7"
         strokeLinecap="round"
-        d="M 174 192 C 180 176, 198 167, 226 168 L 414 176 C 452 152, 500 126, 552 110 C 620 88, 712 84, 780 106 C 826 122, 862 150, 892 186 L 1046 198 C 1108 204, 1160 214, 1190 230"
+        d="M 152 202 C 156 186, 170 174, 192 166 C 226 160, 268 156, 312 152 C 348 142, 396 98, 422 62 C 436 58, 452 55, 470 54 C 506 52, 552 54, 578 62 C 622 94, 664 132, 700 154 C 812 160, 918 168, 1010 176"
       />
     </svg>
   );

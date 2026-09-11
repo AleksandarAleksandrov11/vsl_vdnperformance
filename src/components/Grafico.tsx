@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useInViewOnce } from '@/lib/hooks';
 import { Contador, Eyebrow, H2_CLASS, Reveal, Section, Titular } from './kit';
 
@@ -47,6 +47,16 @@ const MOTORES: Motor[] = [
     rpm: [1000, 4400],
     pico: [3800, 3600],
     techo: 140,
+  },
+  {
+    id: 'cdti-17',
+    pestana: '1.7 CDTI',
+    nombre: '1.7 CDTI 125 CV',
+    serie: { cv: 125, nm: 280, consumo: 4.8 },
+    vdn: { cv: 155, nm: 350, consumo: 4.2 },
+    rpm: [1000, 4500],
+    pico: [3900, 3700],
+    techo: 180,
   },
   {
     id: 'tdi-19',
@@ -139,17 +149,6 @@ const num = (n: number, dec = 0) =>
 export function Grafico() {
   const [motor, setMotor] = useState(MOTORES[POR_DEFECTO]);
   const [ref, visible] = useInViewOnce<HTMLDivElement>({ threshold: 0.25 });
-  const pestanas = useRef<HTMLDivElement>(null);
-
-  /* En móvil los cinco motores no caben de una y la fila scrollea. Se centra
-     la pestaña marcada dentro de su propio carril: `scrollIntoView` no vale
-     aquí porque además movería el scroll de la página. */
-  useEffect(() => {
-    const lista = pestanas.current;
-    const boton = lista?.querySelector<HTMLElement>('[aria-selected="true"]');
-    if (!lista || !boton) return;
-    lista.scrollLeft = boton.offsetLeft - (lista.clientWidth - boton.clientWidth) / 2;
-  }, [motor.id]);
 
   return (
     <Section tone="surface" textura="grid" labelledBy="grafico-t">
@@ -161,11 +160,13 @@ export function Grafico() {
 
         {/* --- Selector de motor --- */}
         <Reveal delay={80} className="mt-9">
+          {/* Seis motones en dos filas de tres en móvil: arrastrar una fila
+              que se sale de la pantalla esconde la mitad de los motores y no
+              se ve que hay más. En escritorio caben todos en una fila. */}
           <div
-            ref={pestanas}
             role="tablist"
             aria-label="Motor de ejemplo"
-            className="scrollbar-none -mx-5 flex gap-2 overflow-x-auto px-5 sm:mx-0 sm:px-0"
+            className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap"
           >
             {MOTORES.map((m) => {
               const activo = m.id === motor.id;
@@ -178,7 +179,7 @@ export function Grafico() {
                   aria-selected={activo}
                   aria-controls="motor-panel"
                   onClick={() => setMotor(m)}
-                  className={`h-11 shrink-0 rounded-full border px-5 text-[0.875rem] transition-colors duration-300 ${
+                  className={`h-11 rounded-full border px-2 text-[0.875rem] transition-colors duration-300 sm:px-5 ${
                     activo
                       ? 'border-transparent bg-ink text-ink-dark'
                       : 'border-hair text-muted hover:text-ink'
@@ -220,35 +221,16 @@ export function Grafico() {
 /* ------------------------------------------------------------------ */
 
 /**
- * Curva de potencia con lectura al pasar el dedo o el ratón.
+ * Curva de potencia. Se mira, no se toca: la sección ya tiene un elemento
+ * interactivo, que son las pestañas de motor, y en móvil un gráfico que
+ * reacciona al dedo se pelea con el scroll de la página.
  *
  * El trazado se revela con una máscara que se abre de izquierda a derecha: es
  * clip-path, no stroke-dashoffset, así se mueve solo en el compositor.
  */
 function Curva({ motor, visible }: { motor: Motor; visible: boolean }) {
-  const [rpm, setRpm] = useState<number | null>(null);
-  const caja = useRef<SVGSVGElement>(null);
   const e = escalas(motor);
   const [min, max] = motor.rpm;
-
-  const leer = useCallback(
-    (clientX: number) => {
-      const el = caja.current;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      const u = (clientX - r.left) / r.width;
-      const util = (W - PAD.left - PAD.right) / W;
-      const t = Math.max(0, Math.min(1, (u - PAD.left / W) / util));
-      /* Se redondea a 500 rpm: leer "a 2500 rpm" dice algo, leer "a 2450" no.
-         El clamp es porque redondear puede pasarse del final de la escala. */
-      const paso500 = Math.round((min + t * (max - min)) / 500) * 500;
-      setRpm(Math.max(min, Math.min(max, paso500)));
-    },
-    [min, max],
-  );
-
-  const cvSerie = rpm === null ? motor.serie.cv : cvEn(rpm, motor.serie.cv, motor.pico[0], min, max);
-  const cvVdn = rpm === null ? motor.vdn.cv : cvEn(rpm, motor.vdn.cv, motor.pico[1], min, max);
 
   const revelado = {
     clipPath: visible ? 'inset(0 0 0 0)' : 'inset(0 100% 0 0)',
@@ -257,27 +239,21 @@ function Curva({ motor, visible }: { motor: Motor; visible: boolean }) {
 
   return (
     <div className="mt-10">
-      {/* Lectura en vivo. Ocupa sitio siempre, así nada salta al tocar. */}
       <p className="flex flex-wrap items-baseline gap-x-5 gap-y-1 text-[0.8125rem]">
-        <span className="text-muted">
-          {rpm === null ? 'Potencia máxima' : `A ${num(rpm)} rpm`}
+        <span className="text-muted">Potencia máxima</span>
+        <span className="num text-muted">
+          Serie <span className="text-ink">{num(motor.serie.cv)}</span> CV
         </span>
         <span className="num text-muted">
-          Serie <span className="text-ink">{num(cvSerie)}</span> CV
-        </span>
-        <span className="num text-muted">
-          VDN <span className="text-accent-hi">{num(cvVdn)}</span> CV
+          VDN <span className="text-accent-hi">{num(motor.vdn.cv)}</span> CV
         </span>
       </p>
 
       <svg
-        ref={caja}
         viewBox={`0 0 ${W} ${H}`}
-        className="mt-3 h-auto w-full touch-pan-y"
+        className="mt-3 h-auto w-full"
         role="img"
         aria-label={`Curva de potencia de un ${motor.nombre}: de serie ${motor.serie.cv} CV, con VDN ${motor.vdn.cv} CV.`}
-        onPointerMove={(ev) => leer(ev.clientX)}
-        onPointerLeave={() => setRpm(null)}
       >
         <line
           x1={PAD.left}
@@ -299,20 +275,7 @@ function Curva({ motor, visible }: { motor: Motor; visible: boolean }) {
             Serie
           </text>
         </g>
-
-        {/* Cursor: línea vertical y dos puntos, sólo mientras se señala. */}
-        {rpm !== null && visible && (
-          <g pointerEvents="none">
-            <line x1={e.x(rpm)} x2={e.x(rpm)} y1={PAD.top} y2={H - PAD.bottom} stroke="rgba(255,255,255,0.22)" strokeWidth="1" />
-            <circle cx={e.x(rpm)} cy={e.y(cvSerie)} r="4" fill="#0e0e10" stroke="#8C8C91" strokeWidth="2" />
-            <circle cx={e.x(rpm)} cy={e.y(cvVdn)} r="4.5" fill="#0e0e10" stroke="#1F5CFF" strokeWidth="2.5" />
-          </g>
-        )}
       </svg>
-
-      <p className="mt-2 text-[0.75rem] text-muted">
-        Desliza por la curva para ver la potencia en cada régimen.
-      </p>
     </div>
   );
 }
@@ -343,24 +306,30 @@ function Tabla({ motor }: { motor: Motor }) {
     /* `relative` no es decorativo: el <span class="sr-only"> que lleva dentro
        cada Contador va en position:absolute, y sin un ancestro posicionado
        aquí su bloque contenedor sería la sección entera, se escaparía del
-       recorte y estiraría la página a lo ancho en móvil. */
-    <div className="relative mt-10 overflow-x-auto lg:mt-14">
+       recorte y estiraría la página a lo ancho en móvil.
+
+       Mismo margen superior que la curva: así el pie de la tabla arranca a la
+       altura de la línea de "Potencia máxima" que hay al lado. */
+    <div className="relative mt-10 overflow-x-auto">
       <table className="w-full min-w-[19rem] border-collapse text-left">
         <caption className="mb-4 text-left text-[0.8125rem] text-muted">
           {motor.nombre}, de serie y reprogramado por VDN.
         </caption>
         <thead>
-          <tr className="border-b border-hair text-[0.6875rem] tracking-[0.12em] text-muted uppercase">
-            <th scope="col" className="py-3 font-medium">
+          {/* Sin reglas propias y con filas de 56 px, que es el paso de la
+              cuadrícula del fondo: las líneas que se ven son las de la
+              cuadrícula, no unas añadidas encima. */}
+          <tr className="h-14 text-[0.6875rem] tracking-[0.12em] text-muted uppercase">
+            <th scope="col" className="font-medium">
               <span className="sr-only">Dato</span>
             </th>
-            <th scope="col" className="py-3 pl-3 text-right font-medium">
+            <th scope="col" className="pl-3 text-right font-medium">
               Serie
             </th>
-            <th scope="col" className="py-3 pl-3 text-right font-medium text-accent-hi">
+            <th scope="col" className="pl-3 text-right font-medium text-accent-hi">
               VDN
             </th>
-            <th scope="col" className="py-3 pl-3 text-right font-medium">
+            <th scope="col" className="pl-3 text-right font-medium">
               <span aria-hidden>Dif.</span>
               <span className="sr-only">Diferencia</span>
             </th>
@@ -368,18 +337,16 @@ function Tabla({ motor }: { motor: Motor }) {
         </thead>
         <tbody key={motor.id}>
           {filas(motor).map((f) => (
-            <tr key={f.concepto} className="border-b border-hair">
-              <th scope="row" className="py-4 pr-2 text-[0.9375rem] leading-tight font-normal text-ink">
+            <tr key={f.concepto} className="h-14">
+              <th scope="row" className="pr-2 text-[0.9375rem] leading-tight font-normal text-ink">
                 {f.concepto}
                 <span className="block text-[0.6875rem] text-muted">{f.unidad}</span>
               </th>
-              <td className="num py-4 pl-3 text-right text-[1rem] text-muted tabular-nums">
-                {f.serie}
-              </td>
-              <td className="num py-4 pl-3 text-right text-[clamp(1.375rem,5.5vw,1.75rem)] leading-none font-medium tracking-[-0.02em] text-ink tabular-nums">
+              <td className="num pl-3 text-right text-[1rem] text-muted tabular-nums">{f.serie}</td>
+              <td className="num pl-3 text-right text-[clamp(1.375rem,5.5vw,1.75rem)] leading-none font-medium tracking-[-0.02em] text-ink tabular-nums">
                 <Contador to={f.vdn} decimales={f.dec} />
               </td>
-              <td className="num py-4 pl-3 text-right text-[0.9375rem] text-accent-hi tabular-nums">
+              <td className="num pl-3 text-right text-[0.9375rem] text-accent-hi tabular-nums">
                 {f.mas}
               </td>
             </tr>
