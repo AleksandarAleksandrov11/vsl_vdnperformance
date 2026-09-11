@@ -7,7 +7,7 @@ import { useReducedMotion } from '@/lib/hooks';
 import { Picture } from './Picture';
 import { BotonPrincipal, EnlaceWhatsapp, H1_CLASS, Titular } from './kit';
 
-const CONFIANZA = ['★ 5,0 en Google', '15 días de garantía de electrónica', 'Listo en el día'];
+const CONFIANZA = ['★ 5,0 en Google', '15 días de garantía de electrónica', 'Listo en una mañana'];
 
 export function Hero() {
   const foto = useRef<HTMLDivElement>(null);
@@ -134,14 +134,12 @@ export function Hero() {
           </EnlaceWhatsapp>
         </div>
 
-        {/* Separadores como pseudoelemento del propio elemento, no como un
-            hueco suelto: así nunca se despegan del texto al saltar de línea. */}
-        <ul className="mt-10 flex flex-wrap items-center gap-y-2 text-[0.75rem] text-muted">
+        {/* En móvil van en columna y sin separadores: en una línea no caben los
+            tres y, al saltar, la raya de separación se quedaba al principio de
+            la segunda línea como si sobrara. */}
+        <ul className="mt-10 flex flex-col gap-y-1.5 text-[0.75rem] text-muted sm:flex-row sm:flex-wrap sm:items-center sm:gap-y-2">
           {CONFIANZA.map((t, i) => (
-            <li
-              key={t}
-              className={i > 0 ? 'border-l border-white/15 pl-4 ml-4' : ''}
-            >
+            <li key={t} className={i > 0 ? 'sm:ml-4 sm:border-l sm:border-white/15 sm:pl-4' : ''}>
               {t}
             </li>
           ))}

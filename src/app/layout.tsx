@@ -77,15 +77,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             ni deja cookies, y si el usuario acepta, el script llega antes. */}
         <link rel="dns-prefetch" href="https://connect.facebook.net" />
 
-        {/* El aviso de cookies aparece un momento después de cargar. Si su alto
-            se aplicara entonces, todo lo que se apoya en él daría un salto y
-            eso penaliza el CLS. Aquí se reserva el hueco antes del primer
-            pintado, mirando si ya hay una decisión guardada. Va en línea y sin
-            async a propósito: son dos líneas y tienen que ejecutarse antes de
-            que se pinte nada. */}
+        {/* Dos cosas que tienen que pasar antes del primer pintado, por eso va
+            en línea y sin async.
+
+            1. El aviso de cookies aparece un momento después de cargar. Si su
+               alto se aplicara entonces, todo lo que se apoya en él daría un
+               salto y eso penaliza el CLS. Aquí se reserva el hueco de
+               antemano, mirando si ya hay una decisión guardada.
+            2. La animación de entrada se enseña una vez por sesión. Marcarlo
+               aquí evita que vuelva a salir al volver de un aviso legal o al
+               recargar, que es cuando cansa. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var d=document.documentElement;var y=localStorage.getItem('${CONSENT_KEY}');d.style.setProperty('--consent-h',y?'0px':(innerWidth<640?'138px':'72px'));}catch(e){document.documentElement.style.setProperty('--consent-h','138px')}})()`,
+            __html: `(function(){var d=document.documentElement;try{var y=localStorage.getItem('${CONSENT_KEY}');d.style.setProperty('--consent-h',y?'0px':(innerWidth<640?'138px':'72px'))}catch(e){d.style.setProperty('--consent-h','138px')}try{if(sessionStorage.getItem('vdn-intro'))d.setAttribute('data-intro','visto');else sessionStorage.setItem('vdn-intro','1')}catch(e){}})()`,
           }}
         />
       </head>

@@ -7,6 +7,7 @@ import { Formulario } from '@/components/Formulario';
 import { Garantia } from '@/components/Garantia';
 import { Grafico } from '@/components/Grafico';
 import { Hero } from '@/components/Hero';
+import { Intro } from '@/components/Intro';
 import { JsonLd } from '@/components/JsonLd';
 import { Nav } from '@/components/Nav';
 import { Proceso } from '@/components/Proceso';
@@ -17,6 +18,7 @@ import { Trabajos } from '@/components/Trabajos';
 export default function Home() {
   return (
     <>
+      <Intro />
       <JsonLd />
       <Nav />
 

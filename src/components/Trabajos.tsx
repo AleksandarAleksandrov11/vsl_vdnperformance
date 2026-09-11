@@ -54,14 +54,19 @@ export function Trabajos() {
               <div className="veil-soft radius relative aspect-[4/5] overflow-hidden bg-void">
                 <Picture
                   name={t.imagen}
-                  alt={i >= TRABAJOS.length ? '' : `${t.modelo}, ${t.etiqueta}`}
+                  alt={i >= TRABAJOS.length ? '' : `${t.modelo}, ${t.trabajo}, ${t.ganancia}`}
                   sizes="(max-width: 640px) 74vw, (max-width: 1024px) 46vw, 336px"
                   className="block h-full w-full"
                   imgClassName="photo h-full w-full object-cover"
                 />
                 <div className="absolute inset-x-0 bottom-0 z-10 p-5">
-                  <h3 className="text-[1.0625rem] leading-tight font-medium">{t.modelo}</h3>
-                  <p className="mt-1 text-[0.8125rem] text-muted">{t.etiqueta}</p>
+                  <h3 className="flex items-baseline justify-between gap-3 text-[1.0625rem] leading-tight font-medium">
+                    <span className="min-w-0 truncate">{t.modelo}</span>
+                    <span className="num shrink-0 text-accent-hi">{t.ganancia}</span>
+                  </h3>
+                  {/* Dos líneas como mucho: hay trabajos con cinco intervenciones
+                      y el rótulo no puede comerse la foto. */}
+                  <p className="clamp-2 mt-1 text-[0.8125rem] text-muted">{t.trabajo}</p>
                 </div>
               </div>
             </article>

@@ -242,21 +242,23 @@ export function Formulario() {
                 </m.div>
               ) : (
                 <m.div key="preguntas" initial={false} exit={{ opacity: 0 }}>
-                  {/* Encabezado: sólo antes de empezar, para no repetirlo en
-                      cada pregunta y dejar la pantalla con una sola idea. */}
-                  {paso === 0 && (
-                    <div className="mb-12">
-                      <Eyebrow>Presupuesto gratis</Eyebrow>
-                      <h2 id="form-t" className="mt-4 text-[clamp(2.5rem,8.5vw,4.5rem)]">
-                        ¿Cuánto gana tu coche?
-                      </h2>
-                    </div>
-                  )}
-                  {paso > 0 && (
-                    <h2 id="form-t" className="sr-only">
+                  {/* El encabezado se queda durante todo el recorrido: es lo que
+                      recuerda para qué se están contestando las preguntas. Al
+                      avanzar sólo encoge, no desaparece, y encoge con transform
+                      para que no empuje nada de lo que hay debajo. */}
+                  <div className={paso === 0 ? 'mb-12' : 'mb-8'}>
+                    <Eyebrow>Presupuesto gratis</Eyebrow>
+                    <h2
+                      id="form-t"
+                      className={`mt-4 origin-left transition-[font-size] duration-500 ease-brand ${
+                        paso === 0
+                          ? 'text-[clamp(2.5rem,8.5vw,4.5rem)]'
+                          : 'text-[clamp(1.5rem,5vw,2.25rem)]'
+                      }`}
+                    >
                       ¿Cuánto gana tu coche?
                     </h2>
-                  )}
+                  </div>
 
                   {/* Progreso y navegación, juntos y siempre encima de la
                       pregunta: la barra tiene que verse cuando se contesta. */}
