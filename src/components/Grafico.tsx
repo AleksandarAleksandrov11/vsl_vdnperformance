@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useInViewOnce } from '@/lib/hooks';
 import { Contador, Eyebrow, H2_CLASS, Reveal, Section, Titular } from './kit';
 
@@ -25,21 +25,13 @@ type Motor = {
   techo: number;
 };
 
+/* Ordenados por cilindrada. El que sale marcado al entrar no es el primero
+   sino el 2.0 TDI: es el motor que más entra por la puerta del taller. */
 const MOTORES: Motor[] = [
   {
-    id: 'tdi-20',
-    pestana: '2.0 TDI',
-    nombre: '2.0 TDI 140 CV',
-    serie: { cv: 140, nm: 320, consumo: 5.4 },
-    vdn: { cv: 180, nm: 400, consumo: 4.9 },
-    rpm: [1000, 4800],
-    pico: [4000, 3800],
-    techo: 210,
-  },
-  {
-    id: 'tsi-15',
-    pestana: '1.5 TSI',
-    nombre: '1.5 TSI 150 CV',
+    id: 'tfsi-15',
+    pestana: '1.5 TFSI',
+    nombre: '1.5 TFSI 150 CV',
     serie: { cv: 150, nm: 250, consumo: 6.2 },
     vdn: { cv: 185, nm: 300, consumo: 5.8 },
     rpm: [1200, 6200],
@@ -47,16 +39,49 @@ const MOTORES: Motor[] = [
     techo: 210,
   },
   {
-    id: 'tdi-30',
-    pestana: '3.0 TDI',
-    nombre: '3.0 TDI 245 CV',
-    serie: { cv: 245, nm: 500, consumo: 6.8 },
-    vdn: { cv: 300, nm: 620, consumo: 6.3 },
+    id: 'hdi-16',
+    pestana: '1.6 HDI',
+    nombre: '1.6 HDI 90 CV',
+    serie: { cv: 90, nm: 215, consumo: 5.2 },
+    vdn: { cv: 120, nm: 260, consumo: 4.5 },
+    rpm: [1000, 4400],
+    pico: [3800, 3600],
+    techo: 140,
+  },
+  {
+    id: 'tdi-19',
+    pestana: '1.9 TDI',
+    nombre: '1.9 TDI 105 CV',
+    serie: { cv: 105, nm: 250, consumo: 5.5 },
+    vdn: { cv: 140, nm: 350, consumo: 4.8 },
+    rpm: [1000, 4400],
+    pico: [3900, 3700],
+    techo: 165,
+  },
+  {
+    id: 'tdi-20',
+    pestana: '2.0 TDI',
+    nombre: '2.0 TDI 140 CV',
+    serie: { cv: 140, nm: 320, consumo: 5.8 },
+    vdn: { cv: 180, nm: 400, consumo: 4.9 },
+    rpm: [1000, 4800],
+    pico: [4000, 3800],
+    techo: 210,
+  },
+  {
+    id: 'd-30',
+    pestana: '3.0 D',
+    nombre: '3.0 D 231 CV',
+    serie: { cv: 231, nm: 500, consumo: 7.8 },
+    vdn: { cv: 280, nm: 620, consumo: 6.9 },
     rpm: [1000, 4800],
     pico: [4100, 3900],
-    techo: 330,
+    techo: 310,
   },
 ];
+
+/** Pestaña marcada al entrar. */
+const POR_DEFECTO = MOTORES.findIndex((m) => m.id === 'tdi-20');
 
 /* --- Geometría del gráfico ------------------------------------------------ */
 
@@ -112,8 +137,19 @@ const num = (n: number, dec = 0) =>
 /* ========================================================================== */
 
 export function Grafico() {
-  const [motor, setMotor] = useState(MOTORES[0]);
+  const [motor, setMotor] = useState(MOTORES[POR_DEFECTO]);
   const [ref, visible] = useInViewOnce<HTMLDivElement>({ threshold: 0.25 });
+  const pestanas = useRef<HTMLDivElement>(null);
+
+  /* En móvil los cinco motores no caben de una y la fila scrollea. Se centra
+     la pestaña marcada dentro de su propio carril: `scrollIntoView` no vale
+     aquí porque además movería el scroll de la página. */
+  useEffect(() => {
+    const lista = pestanas.current;
+    const boton = lista?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!lista || !boton) return;
+    lista.scrollLeft = boton.offsetLeft - (lista.clientWidth - boton.clientWidth) / 2;
+  }, [motor.id]);
 
   return (
     <Section tone="surface" textura="grid" labelledBy="grafico-t">
@@ -126,6 +162,7 @@ export function Grafico() {
         {/* --- Selector de motor --- */}
         <Reveal delay={80} className="mt-9">
           <div
+            ref={pestanas}
             role="tablist"
             aria-label="Motor de ejemplo"
             className="scrollbar-none -mx-5 flex gap-2 overflow-x-auto px-5 sm:mx-0 sm:px-0"
