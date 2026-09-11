@@ -333,6 +333,11 @@
 .line-mask {
   display: block;
   overflow: hidden;
+  /* Hueco para los trazos que bajan de la g, la j, la p y la y: el overflow
+     que hace de máscara los cortaba por abajo. El margen negativo devuelve el
+     hueco, así el ritmo vertical del titular no cambia. */
+  padding-bottom: 0.16em;
+  margin-bottom: -0.16em;
 }
 
 .line-mask > span {
@@ -343,6 +348,135 @@
 
 .line-mask[data-visible='true'] > span {
   transform: none;
+}
+
+/* ==========================================================================
+   Entrada: el coche pasa y detrás se descubre la página
+   Todo con transform, opacity y clip-path. Ni un reflow, ni una línea de JS.
+   ========================================================================== */
+
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow: hidden;
+  pointer-events: none;
+  animation: intro-fin 1.28s steps(1, end) forwards;
+}
+
+/* El negro que se retira hacia la derecha, justo por detrás del coche. */
+.intro-panel {
+  position: absolute;
+  inset: 0;
+  background: var(--color-void);
+  clip-path: inset(0 0 0 0);
+  animation: intro-abre 880ms cubic-bezier(0.36, 0.02, 0.32, 1) 210ms forwards;
+}
+
+.intro-pista {
+  position: absolute;
+  inset: 0;
+}
+
+.intro-coche {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  /* Más ancho que la pantalla a propósito: un coche que no cabe se lee como
+     un coche que pasa cerca y rápido. */
+  width: 132vw;
+  transform: translate3d(-125%, -50%, 0);
+  animation: intro-pasa 1000ms cubic-bezier(0.36, 0.02, 0.32, 1) forwards;
+}
+
+@media (min-width: 48rem) {
+  .intro-coche {
+    width: 66vw;
+  }
+}
+
+/* Filo de luz que viaja con el borde del barrido. */
+.intro-filo {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 18vw;
+  background: linear-gradient(to right, rgba(75, 125, 255, 0) 0%, rgba(120, 160, 255, 0.22) 72%, rgba(220, 234, 255, 0.5) 100%);
+  transform: translate3d(-100%, 0, 0);
+  animation: intro-filo 880ms cubic-bezier(0.36, 0.02, 0.32, 1) 210ms forwards;
+}
+
+@keyframes intro-filo {
+  from {
+    transform: translate3d(-100%, 0, 0);
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(556%, 0, 0);
+    opacity: 0;
+  }
+}
+
+/* Estelas: una barra de luz que cruza y se apaga. */
+.intro-raya {
+  position: absolute;
+  top: var(--y);
+  left: 0;
+  height: 2px;
+  width: var(--w);
+  border-radius: 2px;
+  background: linear-gradient(to right, transparent, rgba(140, 170, 255, 0.55), transparent);
+  transform: translate3d(-110%, 0, 0);
+  opacity: 0;
+  animation: intro-raya 900ms cubic-bezier(0.36, 0.02, 0.32, 1) var(--d) forwards;
+}
+
+@keyframes intro-pasa {
+  from {
+    transform: translate3d(-101%, -50%, 0);
+  }
+  to {
+    transform: translate3d(78%, -50%, 0);
+  }
+}
+
+@keyframes intro-abre {
+  from {
+    clip-path: inset(0 0 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 100%);
+  }
+}
+
+@keyframes intro-raya {
+  0% {
+    transform: translate3d(-110%, 0, 0);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate3d(260%, 0, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes intro-fin {
+  to {
+    visibility: hidden;
+  }
+}
+
+/* Segunda visita de la sesión, o alguien que ha pedido menos movimiento: la
+   página entra directamente, sin intro. */
+html[data-intro='visto'] .intro {
+  display: none;
 }
 
 /* Revelado de imagen: barrido con clip-path y un zoom de 1.06 a 1. */
@@ -455,6 +589,10 @@
   .anim-marquee {
     animation: none !important;
     transform: none !important;
+  }
+
+  .intro {
+    display: none !important;
   }
 
   .reveal-img {

@@ -29,9 +29,9 @@ const MOTORES: Motor[] = [
   {
     id: 'tdi-20',
     pestana: '2.0 TDI',
-    nombre: '2.0 TDI 150 CV',
-    serie: { cv: 150, nm: 340, consumo: 5.4 },
-    vdn: { cv: 190, nm: 420, consumo: 4.9 },
+    nombre: '2.0 TDI 140 CV',
+    serie: { cv: 140, nm: 320, consumo: 5.4 },
+    vdn: { cv: 180, nm: 400, consumo: 4.9 },
     rpm: [1000, 4800],
     pico: [4000, 3800],
     techo: 210,
@@ -121,7 +121,7 @@ export function Grafico() {
         <Reveal>
           <Eyebrow>Resultado</Eyebrow>
         </Reveal>
-        <Titular id="grafico-t" lineas={['Serie vs. VDN.']} className={`${H2_CLASS} mt-4`} />
+        <Titular id="grafico-t" lineas={['Serie vs VDN.']} className={`${H2_CLASS} mt-4`} />
 
         {/* --- Selector de motor --- */}
         <Reveal delay={80} className="mt-9">
@@ -202,7 +202,10 @@ function Curva({ motor, visible }: { motor: Motor; visible: boolean }) {
       const u = (clientX - r.left) / r.width;
       const util = (W - PAD.left - PAD.right) / W;
       const t = Math.max(0, Math.min(1, (u - PAD.left / W) / util));
-      setRpm(Math.round((min + t * (max - min)) / 50) * 50);
+      /* Se redondea a 500 rpm: leer "a 2500 rpm" dice algo, leer "a 2450" no.
+         El clamp es porque redondear puede pasarse del final de la escala. */
+      const paso500 = Math.round((min + t * (max - min)) / 500) * 500;
+      setRpm(Math.max(min, Math.min(max, paso500)));
     },
     [min, max],
   );
@@ -344,14 +347,6 @@ function Tabla({ motor }: { motor: Motor }) {
               </td>
             </tr>
           ))}
-          <tr>
-            <th scope="row" className="py-4 pr-2 text-[0.9375rem] leading-tight font-normal text-ink">
-              En el taller
-            </th>
-            <td className="py-4 pl-3 text-right text-[1rem] text-muted">&mdash;</td>
-            <td className="py-4 pl-3 text-right text-[0.9375rem] text-ink">Una mañana</td>
-            <td className="py-4 pl-3 text-right text-[0.9375rem] text-muted">&mdash;</td>
-          </tr>
         </tbody>
       </table>
     </div>

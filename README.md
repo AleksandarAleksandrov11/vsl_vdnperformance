@@ -195,6 +195,12 @@ momento y se envían los eventos que hubieran quedado en cola.
 - **La entrada del hero no usa fundido.** Chrome descarta para siempre como
   candidato a LCP cualquier elemento que en su primer pintado tuviera
   `opacity: 0`. Con fundido, el LCP se iba al último elemento en aparecer.
+- **La entrada del coche es HTML estático y CSS puro** (`Intro.tsx` y el bloque
+  `.intro` de `globals.css`). Ni una línea de JavaScript, así que se pinta con
+  el primer fotograma. El panel negro es un `div` con color de fondo y el coche
+  un SVG en línea: ninguno de los dos puede ser candidato a LCP, de modo que la
+  métrica la sigue marcando el titular de detrás. Se enseña una vez por sesión y
+  con `prefers-reduced-motion` no se enseña nunca.
 - **El aviso de cookies sí entra con fundido, y es a propósito.** Esa misma
   regla de Chrome lo saca de la carrera por el LCP. Sin el fundido, el aviso
   -que se pinta con la página ya hidratada- era el elemento más grande de la

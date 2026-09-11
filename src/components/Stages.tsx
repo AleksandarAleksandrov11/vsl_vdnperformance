@@ -80,10 +80,12 @@ export function Stages() {
             role="tabpanel"
             id={`${baseId}-panel-${activo}`}
             aria-labelledby={`${baseId}-tab-${activo}`}
-            className="mt-8 grid gap-8 lg:grid-cols-2 lg:items-center lg:gap-16"
+            className="mt-8 grid gap-8 lg:grid-cols-2 lg:items-start lg:gap-16"
           >
-            {/* Foto: el contenedor fija el ratio, así el alto nunca cambia. */}
-            <div className="radius relative aspect-[4/3] overflow-hidden bg-surface">
+            {/* Foto cuadrada y alineada arriba con el texto: centrada en
+                vertical se quedaba más baja que el titular de al lado. El
+                contenedor fija el ratio, así el alto nunca cambia. */}
+            <div className="radius relative aspect-square overflow-hidden bg-surface">
               <AnimatePresence initial={false} mode="popLayout">
                 <m.div
                   key={stage.id}
@@ -116,12 +118,12 @@ export function Stages() {
                 >
                   <h3 className="text-[clamp(1.75rem,5.5vw,2.75rem)]">{stage.titulo}</h3>
 
-                  <ul className="mt-7 space-y-0">
+                  {/* Sin líneas de separación: las tres ventajas se leen mejor
+                      sueltas, y una regla por punto ensucia mucho en móvil. */}
+                  <ul className="mt-7 space-y-3">
                     {stage.puntos.map((p) => (
-                      <li
-                        key={p}
-                        className="border-t border-hair py-3.5 text-[0.9375rem] text-muted last:border-b"
-                      >
+                      <li key={p} className="flex gap-3 text-[0.9375rem] text-muted">
+                        <span aria-hidden className="mt-[0.6em] h-1 w-1 shrink-0 rounded-full bg-accent" />
                         {p}
                       </li>
                     ))}

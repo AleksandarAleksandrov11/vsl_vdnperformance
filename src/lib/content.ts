@@ -14,7 +14,7 @@ export type Cifra = { valor: number; prefijo?: string; sufijo: string; pie: stri
 
 export const CIFRAS: Cifra[] = [
   { valor: 30, prefijo: '+', sufijo: '%', pie: 'Potencia media' },
-  { valor: 1, sufijo: ' día', pie: 'En el taller' },
+  { valor: 100, prefijo: '+', sufijo: '', pie: 'Coches reprogramados' },
   { valor: 15, sufijo: ' días', pie: 'Garantía de electrónica' },
   { valor: 5, sufijo: ' ★', pie: 'En Google', decimales: 1 },
 ];
@@ -73,45 +73,85 @@ export const PASOS: Paso[] = [
 
 /* --- 6. Trabajos --------------------------------------------------------- */
 
-export type Trabajo = { modelo: string; etiqueta: string; imagen: ImageKey };
+/* `ganancia` va aparte del trabajo a propósito: es el dato que se lee primero
+   y así no se pierde dentro de una lista larga de intervenciones. */
+export type Trabajo = { modelo: string; trabajo: string; ganancia: string; imagen: ImageKey };
 
 /* Sólo coches de los que hay foto. El VW Golf R 7.5 sale de la lista hasta que
    llegue la suya: en un carrusel que no para, un hueco vacío canta mucho. */
 export const TRABAJOS: Trabajo[] = [
-  { modelo: 'BMW E46 330d', etiqueta: 'Stage 1 · +55 CV', imagen: 'work-e46-330d' },
-  { modelo: 'BMW E46 320i', etiqueta: 'Stage 1', imagen: 'work-e46-320i' },
-  { modelo: 'BMW E60 530d', etiqueta: 'Stage 2 · +80 CV', imagen: 'work-e60-530d' },
+  {
+    modelo: 'BMW E46 320d',
+    trabajo: 'Stage 2, solución EGR, sonda lambda, hardcut y deep idle',
+    ganancia: '+70 CV',
+    imagen: 'work-e46-330d',
+  },
+  { modelo: 'BMW E46 330d', trabajo: 'Stage 1', ganancia: '+60 CV', imagen: 'work-e46-320i' },
+  {
+    modelo: 'BMW E60 530d',
+    trabajo: 'Stage 1 y solución DPF',
+    ganancia: '+60 CV',
+    imagen: 'work-e60-530d',
+  },
   // TODO: la foto es de un Audi A3 TDI en diagnosis, no de un A4.
-  { modelo: 'Audi A4 2.0 TDI', etiqueta: 'Puesta a punto', imagen: 'work-a4-tdi' },
-  // Etiqueta genérica a propósito: no consta qué se le hizo exactamente a cada
-  // uno de estos tres.
-  { modelo: 'BMW Serie 3 E90', etiqueta: 'Reprogramación', imagen: 'work-e90' },
-  { modelo: 'Audi A3', etiqueta: 'Reprogramación', imagen: 'work-a3' },
-  { modelo: 'Range Rover Sport', etiqueta: 'Reprogramación', imagen: 'work-rrsport' },
+  { modelo: 'Audi A4 2.0 TDI', trabajo: 'Stage 1', ganancia: '+40 CV', imagen: 'work-a4-tdi' },
+  {
+    modelo: 'BMW Serie 3 E90',
+    trabajo: 'Stage 1 y solución EGR',
+    ganancia: '+40 CV',
+    imagen: 'work-e90',
+  },
+  { modelo: 'Audi A3', trabajo: 'Stage 1', ganancia: '+30 CV', imagen: 'work-a3' },
+  {
+    modelo: 'Range Rover Sport',
+    trabajo: 'Stage 1, solución EGR y sonda lambda',
+    ganancia: '+50 CV',
+    imagen: 'work-rrsport',
+  },
 ];
 
 /* --- 7. Reseñas ---------------------------------------------------------- */
 
 export type Resena = { nombre: string; texto: string };
 
+/* Nueve reseñas reales de Google, en rejilla de 3×3. Están elegidas por
+   variedad (gasolina y diésel, Stage 1 y 2, consumo y potencia) y recortadas
+   por frases enteras cuando eran muy largas: no se reescribe lo que dijo
+   nadie, sólo se corta. */
 export const RESENAS: Resena[] = [
-  { nombre: 'teeo_18', texto: 'Servicio de 10. Llevé mi coche a hacer Stage 1 y quedó brutal.' },
-  {
-    nombre: 'Ikerws',
-    texto: 'Unos máquinas, súper majos y cercanos. El coche se nota más suelto y va de lujo.',
-  },
-  {
-    nombre: 'sergio rm',
-    texto: 'Mi 1.6 HDI ya no es perezoso. Diego es todo un profesional, trato de 10.',
-  },
   {
     nombre: 'Irene Rabasco',
     texto:
       'Increíble el cambio en mi coche. Bajó más de 1,5 l a los 100 km. Servicio muy rápido y serio.',
   },
   {
-    nombre: 'Paula Sanchez',
-    texto: 'Atención inmejorable. Llevé mi coche a hacer un Stage 1 y no puedo estar más satisfecha.',
+    nombre: 'Sergio Portillo',
+    texto:
+      'Llevé mi Audi A4 1.9 TDI a hacer Stage 1 y mejor imposible. Sin duda los mejores de la zona.',
+  },
+  {
+    nombre: 'RPM Garage',
+    texto:
+      'Muy rápidos y profesionales. Llevé mi Golf 4 a hacer Stage 2, admisión y escape. No puedo estar más contento.',
+  },
+  { nombre: 'teeo_18', texto: 'Servicio de 10. Llevé mi coche a hacer Stage 1 y quedó brutal.' },
+  {
+    nombre: 'sergio rm',
+    texto: 'Mi 1.6 HDI ya no es perezoso. Diego es todo un profesional, trato de 10.',
+  },
+  {
+    nombre: 'Antonio Sánchez',
+    texto:
+      'Gran servicio. Llevé mi coche a anular EGR y bajarle los consumos y me voy encantado, muy económico.',
+  },
+  {
+    nombre: 'DLS Detailing',
+    texto:
+      'Muy contento con el trabajo en mi Golf R. Les contacté para hacerle pops y quedó muy bien.',
+  },
+  {
+    nombre: 'Ikerws',
+    texto: 'Unos máquinas, súper majos y cercanos. El coche se nota más suelto y va de lujo.',
   },
   {
     nombre: 'Miguel',

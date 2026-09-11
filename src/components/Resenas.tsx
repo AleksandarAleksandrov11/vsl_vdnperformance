@@ -19,12 +19,22 @@ export function Resenas() {
   const carril = useRef<HTMLDivElement>(null);
   const [indice, setIndice] = useState(0);
 
-  /** El índice sale de la posición de scroll: así acierta también al arrastrar. */
+  /** El índice es la tarjeta cuyo centro está más cerca del centro del carril. */
   const alScroll = useCallback(() => {
     const el = carril.current;
     if (!el) return;
-    const paso = el.scrollWidth / RESENAS.length;
-    setIndice(Math.round(el.scrollLeft / paso));
+    const centro = el.scrollLeft + el.clientWidth / 2;
+    let mejor = 0;
+    let dist = Infinity;
+    [...el.children].forEach((hijo, i) => {
+      const h = hijo as HTMLElement;
+      const d = Math.abs(h.offsetLeft + h.clientWidth / 2 - centro);
+      if (d < dist) {
+        dist = d;
+        mejor = i;
+      }
+    });
+    setIndice(mejor);
   }, []);
 
   useEffect(() => {
@@ -34,11 +44,23 @@ export function Resenas() {
     return () => el.removeEventListener('scroll', alScroll);
   }, [alScroll]);
 
+  /**
+   * Da la vuelta: de la última se pasa a la primera y al revés. El salto largo
+   * se hace sin animar; arrastrar 8 pantallas de reseñas para volver al
+   * principio se ve como un fallo, no como un carrusel.
+   */
   const ir = (delta: number) => {
     const el = carril.current;
     if (!el) return;
-    const destino = Math.max(0, Math.min(RESENAS.length - 1, indice + delta));
-    el.scrollTo({ left: (el.scrollWidth / RESENAS.length) * destino, behavior: 'smooth' });
+    const n = RESENAS.length;
+    const destino = (indice + delta + n) % n;
+    const hijo = el.children[destino] as HTMLElement | undefined;
+    if (!hijo) return;
+    const vuelta = Math.abs(destino - indice) > 1;
+    el.scrollTo({
+      left: hijo.offsetLeft - (el.clientWidth - hijo.clientWidth) / 2,
+      behavior: vuelta ? 'auto' : 'smooth',
+    });
   };
 
   return (
@@ -50,26 +72,39 @@ export function Resenas() {
         <Titular id="resenas-t" lineas={['5,0 en Google.']} className={`${H2_CLASS} mt-4`} />
       </div>
 
-      {/* --- Móvil: carrusel con flechas --- */}
+      {/* --- Móvil: carrusel centrado, con flechas --- */}
       <div className="relative mt-10 lg:hidden">
+        {/* El relleno lateral es justo el que falta para que una tarjeta de
+            82vw quede centrada: (100 - 82) / 2. Sin él, la primera y la última
+            no pueden llegar al centro por mucho que se arrastre. */}
         <div
           ref={carril}
           role="region"
           aria-label="Opiniones de clientes en Google"
           tabIndex={0}
-          className="scrollbar-none rail flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-1"
+          className="scrollbar-none flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-[9vw] pb-1"
         >
           {RESENAS.map((r) => (
-            <div key={r.nombre} className="w-[78vw] max-w-[21rem] shrink-0 snap-start">
+            <div key={r.nombre} className="w-[82vw] shrink-0 snap-center">
               <Tarjeta {...r} />
             </div>
           ))}
         </div>
 
-        {/* Las flechas van montadas sobre los bordes del carril, centradas en
-            alto. Se desvanecen al llegar al principio o al final. */}
-        <FlechaCarrusel lado="izquierda" onClick={() => ir(-1)} disabled={indice === 0} />
-        <FlechaCarrusel lado="derecha" onClick={() => ir(1)} disabled={indice >= RESENAS.length - 1} />
+        <FlechaCarrusel lado="izquierda" onClick={() => ir(-1)} />
+        <FlechaCarrusel lado="derecha" onClick={() => ir(1)} />
+
+        {/* Puntos: en nueve reseñas, sin ellos no se sabe por dónde vas. */}
+        <div aria-hidden className="mt-5 flex justify-center gap-1.5">
+          {RESENAS.map((r, i) => (
+            <span
+              key={r.nombre}
+              className={`h-1.5 w-1.5 rounded-full transition-colors duration-300 ${
+                i === indice ? 'bg-ink-dark' : 'bg-black/20'
+              }`}
+            />
+          ))}
+        </div>
       </div>
 
       {/* --- Escritorio: rejilla --- */}
@@ -99,24 +134,15 @@ export function Resenas() {
 
 /* ------------------------------------------------------------------ */
 
-function FlechaCarrusel({
-  lado,
-  onClick,
-  disabled,
-}: {
-  lado: 'izquierda' | 'derecha';
-  onClick: () => void;
-  disabled: boolean;
-}) {
+function FlechaCarrusel({ lado, onClick }: { lado: 'izquierda' | 'derecha'; onClick: () => void }) {
   const izq = lado === 'izquierda';
   return (
     <button
       type="button"
       onClick={onClick}
-      disabled={disabled}
       aria-label={izq ? 'Opinión anterior' : 'Opinión siguiente'}
-      className={`absolute top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-hair-dark bg-paper/90 text-ink-dark shadow-[0_2px_12px_rgba(0,0,0,0.1)] backdrop-blur-sm transition-opacity duration-300 disabled:pointer-events-none disabled:opacity-0 ${
-        izq ? 'left-2' : 'right-2'
+      className={`absolute top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-hair-dark bg-paper/90 text-ink-dark shadow-[0_2px_12px_rgba(0,0,0,0.1)] backdrop-blur-sm ${
+        izq ? 'left-1' : 'right-1'
       }`}
     >
       <svg
