@@ -15,7 +15,7 @@ export type Cifra = { valor: number; prefijo?: string; sufijo: string; pie: stri
 export const CIFRAS: Cifra[] = [
   { valor: 30, prefijo: '+', sufijo: '%', pie: 'Potencia media' },
   { valor: 100, prefijo: '+', sufijo: '', pie: 'Coches reprogramados' },
-  { valor: 15, sufijo: ' días', pie: 'Garantía de electrónica' },
+  { valor: 15, sufijo: ' días', pie: 'Garantía electrónica' },
   { valor: 5, sufijo: ' ★', pie: 'En Google', decimales: 1 },
 ];
 
