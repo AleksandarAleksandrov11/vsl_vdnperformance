@@ -108,9 +108,26 @@ Cinco pantallas, una pregunta en cada una. Al enviar:
    Script lee `e.parameter` y así no hay CORS.
 2. Campos: `nombre`, `telefono`, `modelo`, `anio`, `motor`, `potencia`,
    `utm_source`, `utm_campaign`, `utm_content`, `event_id`, `website`.
-3. La pantalla final se muestra siempre, incluso si falla la red: con `no-cors`
-   la respuesta es opaca y no se puede saber si la hoja lo guardó. Si algo ha
-   ido mal, el botón de WhatsApp de esa pantalla recupera el contacto.
+3. La petición se corta a los 8 segundos. La pantalla final se muestra siempre,
+   incluso si falla la red: con `no-cors` la respuesta es opaca y no se puede
+   saber si la hoja lo guardó. Si algo ha ido mal, el botón de WhatsApp de esa
+   pantalla recupera el contacto.
+
+### Pendiente: actualizar el Apps Script
+
+Se mandó un lead de prueba y llega a la hoja, pero el Apps Script que hay
+publicado se ha quedado desfasado respecto a las cabeceras:
+
+- **La potencia de serie no se guarda.** La web la manda, la hoja no tiene
+  columna para ella y se pierde.
+- **Las tres columnas `utm_` y el `Estado` caen una columna a la izquierda** de
+  su cabecera, porque el script escribe la fila como una lista fija y la
+  columna «Objetivo» queda sin rellenar.
+
+En `docs/apps-script.gs` está el script corregido: busca cada valor por el
+nombre de la cabecera, así que las columnas se pueden mover o renombrar sin
+tocar el código. Para instalarlo, renombra «Objetivo» a «Potencia de serie» en
+la hoja y sigue los pasos que vienen en el propio archivo.
 
 `event_id` es un UUID que se manda a la vez a la hoja y al evento `Lead` del
 píxel, para poder conectar la API de Conversiones sin duplicar conversiones.
@@ -178,6 +195,10 @@ momento y se envían los eventos que hubieran quedado en cola.
 - **La entrada del hero no usa fundido.** Chrome descarta para siempre como
   candidato a LCP cualquier elemento que en su primer pintado tuviera
   `opacity: 0`. Con fundido, el LCP se iba al último elemento en aparecer.
+- **El aviso de cookies sí entra con fundido, y es a propósito.** Esa misma
+  regla de Chrome lo saca de la carrera por el LCP. Sin el fundido, el aviso
+  -que se pinta con la página ya hidratada- era el elemento más grande de la
+  pantalla y se llevaba el LCP por encima de los tres segundos.
 - **El revelado de imágenes va en dos capas.** El `clip-path` se aplica a la de
   dentro y se observa la de fuera: observar la capa recortada daría área cero y
   el `IntersectionObserver` no la daría nunca por visible.

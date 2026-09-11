@@ -30,7 +30,8 @@ from PIL import Image, ImageChops, ImageDraw, ImageFont
 from skimage import measure
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC_LOGO = ROOT / "assets-src" / "logo-vdn.png"
+SRC_DIR = ROOT / "assets-src"
+SRC_LOGO = SRC_DIR / "logo-vdn.png"
 PUBLIC = ROOT / "public"
 APP = ROOT / "src" / "app"
 FONTS = ROOT / "scripts" / ".fonts"
@@ -265,13 +266,17 @@ def main() -> None:
 
     print("Logo:")
     logo = logo_transparente()
-    logo.save(PUBLIC / "logo-vdn.png", optimize=True)
+    # El PNG a tamaño completo es para el cliente (fondo transparente, sirve para
+    # cualquier cosa), no para la web: se guarda fuera de public/ para no
+    # subirlo a Vercel en cada despliegue.
+    logo.save(SRC_DIR / "logo-vdn-transparente.png", optimize=True)
     # Versión para la web: en la cabecera se ve a 24 px de alto y en el pie a 28.
     # Con 400 px de ancho sobra incluso en una pantalla a 3x, y baja de 44 kB a
     # unos 6 kB, que es ancho de banda que le quitábamos a la foto del hero.
     web = logo.resize((400, round(logo.height * 400 / logo.width)), Image.LANCZOS)
     web.save(PUBLIC / "logo-vdn.webp", quality=88, method=6)
-    print(f"  · public/logo-vdn.png {logo.width}x{logo.height} · logo-vdn.webp {web.width}x{web.height}")
+    print(f"  · assets-src/logo-vdn-transparente.png {logo.width}x{logo.height}")
+    print(f"  · public/logo-vdn.webp {web.width}x{web.height}")
 
     print("Iconos:")
     polys, bbox = trazar_n()

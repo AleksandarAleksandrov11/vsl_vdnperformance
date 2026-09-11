@@ -186,11 +186,17 @@ async function main() {
     .getAttribute('href');
   const texto = decodeURIComponent(new URL(wa).searchParams.get('text') ?? '');
   ok(texto.includes('soy Diego'), 'El mensaje de WhatsApp lleva el nombre');
-  ok(texto.includes('BMW Serie 3 de 2016'), 'Lleva coche y año');
-  ok(texto.includes('150 CV de serie'), 'Lleva la potencia');
+  ok(texto.includes('Marca/Modelo: BMW Serie 3 (2016)'), 'Lleva coche y año en la plantilla');
+  ok(texto.includes('Potencia de serie: 150 CV'), 'Lleva la potencia en la plantilla');
   ok(!texto.includes('No lo sabe'), 'Omite el motor porque no lo sabía', texto);
 
   await page.screenshot({ path: '/tmp/form-final.png' });
+
+  /* --- Pedir otro presupuesto deja el formulario en blanco --- */
+  await page.getByRole('button', { name: 'Pedir otro presupuesto' }).click();
+  await page.waitForTimeout(700);
+  ok(await page.locator('#f-modelo').isVisible(), 'Se puede empezar otro presupuesto');
+  ok((await page.locator('#f-modelo').inputValue()) === '', 'El formulario vuelve en blanco');
 
   ok(errores.length === 0, 'Sin errores de consola', errores.join(' | ').slice(0, 200));
 

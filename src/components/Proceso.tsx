@@ -15,7 +15,7 @@ import { Eyebrow, H2_CLASS, Reveal, RevealImg, Section, Titular } from './kit';
  */
 export function Proceso() {
   return (
-    <Section labelledBy="proceso-t">
+    <Section tone="void" textura="grain" labelledBy="proceso-t">
       <div className="shell">
         <Reveal>
           <Eyebrow>Cómo funciona</Eyebrow>

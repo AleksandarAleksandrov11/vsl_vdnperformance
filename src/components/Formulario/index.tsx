@@ -34,12 +34,20 @@ type Datos = {
 
 const VACIO: Datos = { modelo: '', anio: '', motor: '', potencia: '', nombre: '', telefono: '' };
 
-/** Mensaje de WhatsApp de la pantalla final, con lo que la persona haya contado. */
+/**
+ * Mensaje de WhatsApp de la pantalla final. Es la misma plantilla que el botón
+ * de WhatsApp del resto de la página, pero ya rellena con lo que la persona
+ * acaba de contestar: no tiene que volver a escribirlo.
+ */
 function mensajeWhatsapp(d: Datos): string {
-  let texto = `Hola, soy ${d.nombre.trim()}. Acabo de pedir precio en la web para mi ${d.modelo.trim()} de ${d.anio}`;
-  if (d.motor !== NO_LO_SABE) texto += `, motor ${d.motor.trim()}`;
-  if (d.potencia !== NO_LO_SABE) texto += `, ${d.potencia} CV de serie`;
-  return `${texto}.`;
+  const dato = (v: string) => (v && v !== NO_LO_SABE ? v.trim() : '');
+  return [
+    `Hola, soy ${d.nombre.trim()}. Acabo de pedir precio en la web y me gustaría saber cuánto le puedo sacar a mi coche:`,
+    '',
+    `- Marca/Modelo: ${d.modelo.trim()} (${d.anio})`,
+    `- Motor: ${dato(d.motor)}`,
+    `- Potencia de serie: ${dato(d.potencia) ? `${dato(d.potencia)} CV` : ''}`,
+  ].join('\n');
 }
 
 export function Formulario() {
@@ -97,6 +105,18 @@ export function Formulario() {
       clearTimeout(t);
     };
   }, [interactuado, hecho]);
+
+  /** Vuelve a dejar el formulario en blanco para pedir otro presupuesto. */
+  const otroPresupuesto = useCallback(() => {
+    setDatos(VACIO);
+    setPaso(0);
+    setDireccion(1);
+    setError(null);
+    setHecho(false);
+    honeypot.current = '';
+    // FormStart marca el arranque del formulario en la sesión, no de cada
+    // envío: no se reinicia, o se contaría dos veces la misma visita.
+  }, []);
 
   const set = useCallback((k: keyof Datos, v: string) => {
     setDatos((d) => ({ ...d, [k]: v }));
@@ -205,10 +225,10 @@ export function Formulario() {
     <section
       id={FORM_ID}
       aria-labelledby="form-t"
-      className="relative flex min-h-[100svh] scroll-mt-0 flex-col bg-void"
+      className="tex-glow relative isolate flex min-h-[100svh] scroll-mt-0 flex-col bg-void"
     >
       <LazyMotion features={domAnimation} strict>
-        <div className="shell flex flex-1 flex-col justify-center py-20 lg:py-28">
+        <div className="shell relative z-10 flex flex-1 flex-col justify-center py-20 lg:py-24">
           <div ref={panelRef} className="mx-auto w-full max-w-[40rem]">
             <AnimatePresence mode="wait" initial={false}>
               {hecho ? (
@@ -218,7 +238,7 @@ export function Formulario() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                 >
-                  <PantallaFinal datos={datos} />
+                  <PantallaFinal datos={datos} onOtro={otroPresupuesto} />
                 </m.div>
               ) : (
                 <m.div key="preguntas" initial={false} exit={{ opacity: 0 }}>
@@ -563,7 +583,7 @@ function Spinner() {
 
 /* ========================================================================== */
 
-function PantallaFinal({ datos }: { datos: Datos }) {
+function PantallaFinal({ datos, onOtro }: { datos: Datos; onOtro: () => void }) {
   const nombre = datos.nombre.trim().split(' ')[0] || datos.nombre.trim();
 
   return (
@@ -600,16 +620,28 @@ function PantallaFinal({ datos }: { datos: Datos }) {
         Te escribimos por WhatsApp en menos de 24 h.
       </p>
 
-      <a
-        href={waLink(mensajeWhatsapp(datos))}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={() => trackContact('whatsapp')}
-        className="mt-10 inline-flex h-14 w-full items-center justify-center gap-2 rounded-full border border-hair px-7 text-[0.9375rem] font-medium text-ink transition-colors duration-300 hover:border-white/30 sm:w-auto"
-      >
-        <IconoWhatsapp className="h-4 w-4" />
-        Escribir ahora por WhatsApp
-      </a>
+      <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <a
+          href={waLink(mensajeWhatsapp(datos))}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => trackContact('whatsapp')}
+          className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-full border border-hair px-7 text-[0.9375rem] font-medium text-ink transition-colors duration-300 hover:border-white/30 sm:w-auto"
+        >
+          <IconoWhatsapp className="h-4 w-4" />
+          Escribir ahora por WhatsApp
+        </a>
+
+        {/* Mucha gente tiene dos coches. Si no hay forma de volver a empezar,
+            toca recargar la página a mano. */}
+        <button
+          type="button"
+          onClick={onOtro}
+          className="inline-flex h-14 items-center justify-center px-2 text-[0.9375rem] text-muted underline decoration-white/20 underline-offset-[6px] transition-colors duration-300 hover:text-ink"
+        >
+          Pedir otro presupuesto
+        </button>
+      </div>
     </div>
   );
 }

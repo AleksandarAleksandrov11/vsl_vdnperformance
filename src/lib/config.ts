@@ -41,8 +41,18 @@ export const SITE = {
   garantiaDias: 15,
 } as const;
 
-export const WHATSAPP_DEFAULT =
-  'Hola, vengo de la web y quiero información sobre reprogramar mi coche';
+/**
+ * Mensaje que sale ya escrito al abrir WhatsApp. Va con los campos en blanco a
+ * propósito: la persona los rellena y el taller recibe de una todo lo que
+ * necesita para dar precio, sin tener que pedirlo en tres mensajes.
+ */
+export const WHATSAPP_DEFAULT = [
+  'Hola, he visto vuestro anuncio y me gustaría saber cuánto le puedo sacar a mi coche:',
+  '',
+  '- Marca/Modelo: ',
+  '- Motor: ',
+  '- Potencia de serie: ',
+].join('\n');
 
 /** Construye un enlace de WhatsApp con el mensaje ya escrito. */
 export function waLink(mensaje: string = WHATSAPP_DEFAULT): string {

@@ -27,6 +27,7 @@ type Vista = 'oculto' | 'aviso' | 'panel';
 export function CookieBanner() {
   const [vista, setVista] = useState<Vista>('oculto');
   const [marketing, setMarketing] = useState(false);
+  const [entrado, setEntrado] = useState(false);
   const tarjetaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -46,6 +47,21 @@ export function CookieBanner() {
     window.addEventListener(EVENTO_ABRIR, abrir);
     return () => window.removeEventListener(EVENTO_ABRIR, abrir);
   }, []);
+
+  /* El aviso se pinta la primera vez con opacity 0 y entra en el fotograma
+     siguiente. Además de quedar mejor, es lo que lo saca de la carrera por el
+     LCP: Chrome descarta para siempre los elementos que aparecen por primera
+     vez transparentes, y si no, este aviso -que se pinta ya con la página
+     hidratada- se convertía en el elemento más grande y se llevaba el LCP a
+     más de tres segundos. */
+  useEffect(() => {
+    if (vista !== 'aviso') {
+      setEntrado(false);
+      return;
+    }
+    const raf = requestAnimationFrame(() => setEntrado(true));
+    return () => cancelAnimationFrame(raf);
+  }, [vista]);
 
   /* El alto real del aviso se publica como --consent-h. El layout lo reserva
      antes del primer pintado (ver el script en línea de layout.tsx), así que
@@ -137,7 +153,11 @@ export function CookieBanner() {
   /* ------------------------------ Aviso ------------------------------ */
   return (
     <div ref={tarjetaRef} className="safe-b fixed inset-x-0 bottom-0 z-[55] px-3 pb-3">
-      <div className="radius mx-auto max-w-2xl border border-hair bg-surface/95 p-4 backdrop-blur-xl sm:flex sm:items-center sm:gap-6 sm:p-5">
+      <div
+        className={`radius mx-auto max-w-2xl border border-hair bg-surface/95 p-4 backdrop-blur-xl transition-[opacity,transform] duration-500 ease-brand sm:flex sm:items-center sm:gap-6 sm:p-5 ${
+          entrado ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
+        }`}
+      >
         <p className="text-[0.8125rem] leading-snug text-muted sm:flex-1">
           Cookies propias para que la web funcione y, si nos dejas, de Meta para medir anuncios.{' '}
           <Link href="/politica-cookies" className="text-ink underline decoration-white/25 underline-offset-2">

@@ -192,10 +192,14 @@ async function blurPlates(pipeline, boxes, W, H) {
   return sharp(base).composite(overlays);
 }
 
+/* Se exportan dos formatos y nada más:
+   · AVIF, que es el que descarga casi todo el mundo y pesa la mitad que WebP.
+   · WebP, como respaldo y como `src` del <img>.
+   Ya no se genera JPEG: lo soportan los mismos navegadores que WebP desde 2020,
+   así que era casi un megabyte subido a Vercel que no pedía nadie. */
 const enc = {
   avif: { quality: 46, effort: 6, chromaSubsampling: '4:2:0' },
   webp: { quality: 72, effort: 6, smartSubsample: true },
-  jpeg: { quality: 70, progressive: true, mozjpeg: true, chromaSubsampling: '4:2:0' },
 };
 
 async function run() {
@@ -245,14 +249,9 @@ async function run() {
         }
       }
 
-      // Respaldo JPEG en el ancho intermedio, sólo por si fallan AVIF y WebP.
+      // `src` del <img>: el WebP del ancho intermedio. Es lo que usa el
+      // navegador si ignora los <source>, y ya está generado más arriba.
       const fw = v.widths[Math.min(1, v.widths.length - 1)];
-      const fbInfo = await cropped
-        .clone()
-        .resize(fw, Math.round(fw / v.ratio), { fit: 'cover', kernel: 'lanczos3' })
-        .jpeg(enc.jpeg)
-        .toFile(path.join(OUT, `${v.name}-${fw}.jpg`));
-      totalBytes += fbInfo.size;
 
       const lqipBuf = await cropped.clone().resize(20).webp({ quality: 28 }).toBuffer();
       const { dominant } = await cropped.clone().resize(64).stats();
@@ -262,7 +261,7 @@ async function run() {
         width: v.widths[v.widths.length - 1],
         height: Math.round(v.widths[v.widths.length - 1] / v.ratio),
         aspect: Number(v.ratio.toFixed(5)),
-        src: `/img/${v.name}-${fw}.jpg`,
+        src: `/img/${v.name}-${fw}.webp`,
         avif: sources.avif,
         webp: sources.webp,
         lqip: `data:image/webp;base64,${lqipBuf.toString('base64')}`,

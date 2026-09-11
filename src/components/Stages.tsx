@@ -39,7 +39,7 @@ export function Stages() {
   }
 
   return (
-    <Section labelledBy="stages-t">
+    <Section tone="void" textura="glow" labelledBy="stages-t">
       <div className="shell">
         <Reveal>
           <Eyebrow>Servicios</Eyebrow>

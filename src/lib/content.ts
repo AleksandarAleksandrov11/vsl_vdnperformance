@@ -15,7 +15,7 @@ export type Cifra = { valor: number; prefijo?: string; sufijo: string; pie: stri
 export const CIFRAS: Cifra[] = [
   { valor: 30, prefijo: '+', sufijo: '%', pie: 'Potencia media' },
   { valor: 1, sufijo: ' día', pie: 'En el taller' },
-  { valor: 15, sufijo: ' días', pie: 'De garantía' },
+  { valor: 15, sufijo: ' días', pie: 'Garantía de electrónica' },
   { valor: 5, sufijo: ' ★', pie: 'En Google', decimales: 1 },
 ];
 
@@ -36,7 +36,7 @@ export const STAGES: Stage[] = [
     id: 'stage-1',
     pestana: 'Stage 1',
     titulo: 'Solo software. Cero piezas.',
-    puntos: ['Hasta +30% de potencia', 'Más par desde abajo', 'Menos consumo'],
+    puntos: ['Hasta +30% de potencia', 'Más par', 'Menos consumo'],
     precio: 'Desde 219 €',
     cta: 'Calcular mi Stage 1',
     imagen: 'stage-1',
@@ -45,7 +45,7 @@ export const STAGES: Stage[] = [
     id: 'stage-2',
     pestana: 'Stage 2',
     titulo: 'Software y mecánica.',
-    puntos: ['Admisión, escape e intercooler', 'Más rendimiento', 'Para uso diario'],
+    puntos: ['Admisión, escape e intercooler', 'Más rendimiento', 'El motor respira mejor'],
     precio: 'Precio según coche',
     cta: 'Pedir precio',
     imagen: 'stage-2',
@@ -68,23 +68,23 @@ export type Paso = { n: string; titulo: string; linea: string; imagen: ImageKey 
 export const PASOS: Paso[] = [
   { n: '01', titulo: 'Dinos tu coche', linea: '30 segundos, desde el móvil.', imagen: 'paso-1' },
   { n: '02', titulo: 'Te damos el precio', linea: 'Por WhatsApp, en menos de 24 h.', imagen: 'paso-2' },
-  { n: '03', titulo: 'Te lo llevas hoy', linea: 'Diagnosis, mapa a medida y prueba.', imagen: 'paso-3' },
+  { n: '03', titulo: 'Listo en una mañana', linea: 'Diagnosis, mapa a medida y prueba.', imagen: 'paso-3' },
 ];
 
 /* --- 6. Trabajos --------------------------------------------------------- */
 
-export type Trabajo = { modelo: string; etiqueta: string; imagen: ImageKey | null };
+export type Trabajo = { modelo: string; etiqueta: string; imagen: ImageKey };
 
+/* Sólo coches de los que hay foto. El VW Golf R 7.5 sale de la lista hasta que
+   llegue la suya: en un carrusel que no para, un hueco vacío canta mucho. */
 export const TRABAJOS: Trabajo[] = [
   { modelo: 'BMW E46 330d', etiqueta: 'Stage 1 · +55 CV', imagen: 'work-e46-330d' },
-  // TODO: falta la foto del Golf R 7.5; la tarjeta sale con el hueco vacío.
-  { modelo: 'VW Golf R 7.5', etiqueta: 'Stage 2', imagen: null },
   { modelo: 'BMW E46 320i', etiqueta: 'Stage 1', imagen: 'work-e46-320i' },
   { modelo: 'BMW E60 530d', etiqueta: 'Stage 2 · +80 CV', imagen: 'work-e60-530d' },
   // TODO: la foto es de un Audi A3 TDI en diagnosis, no de un A4.
   { modelo: 'Audi A4 2.0 TDI', etiqueta: 'Puesta a punto', imagen: 'work-a4-tdi' },
-  // Tarjetas extra con las fotos que quedaban. Etiqueta genérica a propósito:
-  // no consta qué se le hizo exactamente a cada uno.
+  // Etiqueta genérica a propósito: no consta qué se le hizo exactamente a cada
+  // uno de estos tres.
   { modelo: 'BMW Serie 3 E90', etiqueta: 'Reprogramación', imagen: 'work-e90' },
   { modelo: 'Audi A3', etiqueta: 'Reprogramación', imagen: 'work-a3' },
   { modelo: 'Range Rover Sport', etiqueta: 'Reprogramación', imagen: 'work-rrsport' },

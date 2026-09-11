@@ -9,7 +9,7 @@ import { Contador, Reveal } from './kit';
  */
 export function Cifras() {
   return (
-    <section aria-label="VDN Performance en cifras" className="bg-void">
+    <section aria-label="VDN Performance en cifras" className="relative isolate bg-surface">
       <div className="shell">
         <ul className="grid grid-cols-2 border-t border-hair lg:grid-cols-4">
           {CIFRAS.map((c, i) => (
