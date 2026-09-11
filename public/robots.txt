@@ -1,0 +1,4 @@
+# vsl.vdnperformance.es es una landing sólo para anuncios de Meta Ads.
+# No debe indexarse ni competir en Google con vdnperformance.es.
+User-agent: *
+Disallow: /
