@@ -161,6 +161,7 @@ async function main() {
       anio: '2016',
       motor: 'No lo sabe',
       potencia: '150',
+      objetivo: '150',
       utm_source: 'facebook',
       utm_campaign: 'stage1-villalba',
       utm_content: 'video-e46',
@@ -172,7 +173,7 @@ async function main() {
     ok(/^[0-9a-f-]{20,}$/i.test(p.get('event_id') ?? ''), 'event_id es un UUID', p.get('event_id'));
     const campos = [...p.keys()].sort().join(',');
     ok(
-      campos === 'anio,event_id,modelo,motor,nombre,potencia,telefono,utm_campaign,utm_content,utm_source,website',
+      campos === 'anio,event_id,modelo,motor,nombre,objetivo,potencia,telefono,utm_campaign,utm_content,utm_source,website',
       'No se manda ningún campo de más',
       campos,
     );

@@ -80,7 +80,11 @@ export type Lead = {
  * botón de WhatsApp como camino principal y el lead no se pierde.
  */
 export async function enviarLead(lead: Lead): Promise<{ ok: boolean }> {
-  const datos = new URLSearchParams({ ...lead, ...leerUtm() });
+  /* `objetivo` es la potencia otra vez, con el nombre que espera el Apps Script
+     publicado: su columna "Potencia de serie" lee ese campo, no `potencia`.
+     Se mandan los dos para no depender de qué versión del script esté
+     desplegada; el que no se use, el script lo ignora. */
+  const datos = new URLSearchParams({ ...lead, objetivo: lead.potencia, ...leerUtm() });
 
   /* Con cobertura mala una petición se puede quedar colgada minutos. Ocho
      segundos y se corta: es mejor enseñar la pantalla final con el botón de
