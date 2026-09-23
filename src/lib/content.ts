@@ -15,7 +15,7 @@ export type Cifra = { valor: number; prefijo?: string; sufijo: string; pie: stri
 export const CIFRAS: Cifra[] = [
   { valor: 30, prefijo: '+', sufijo: '%', pie: 'Potencia media' },
   { valor: 100, prefijo: '+', sufijo: '', pie: 'Coches reprogramados' },
-  { valor: 15, sufijo: ' días', pie: 'Garantía de electrónica' },
+  { valor: 15, sufijo: ' días', pie: 'Garantía electrónica' },
   { valor: 5, sufijo: ' ★', pie: 'En Google', decimales: 1 },
 ];
 
@@ -166,7 +166,7 @@ export type Pregunta = { p: string; r: string };
 export const FAQ: Pregunta[] = [
   {
     p: '¿Es peligroso para el motor?',
-    r: 'No, si está bien hecho. Trabajamos dentro de los márgenes de seguridad y el mapa se ajusta a tu coche.',
+    r: 'No. Trabajamos dentro de los márgenes de seguridad y el mapa se ajusta a tu coche.',
   },
   { p: '¿Es reversible?', r: 'Totalmente. Guardamos siempre tu mapa original.' },
   { p: '¿Cuánto se tarda?', r: 'En una mañana lo tienes.' },

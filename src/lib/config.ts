@@ -11,9 +11,9 @@ export const SITE = {
   webPrincipal: 'https://vdnperformance.es',
   email: 'vdnperformance@gmail.com',
   /** Para tel: y wa.me — sin espacios ni símbolos. */
-  phoneRaw: '34684216695',
-  phoneDisplay: '684 21 66 95',
-  phoneIntl: '+34 684 21 66 95',
+  phoneRaw: '34711523484',
+  phoneDisplay: '711 52 34 84',
+  phoneIntl: '+34 711 52 34 84',
   taller: {
     calle: 'C. Calibre, 72',
     cp: '28400',

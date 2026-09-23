@@ -7,7 +7,7 @@ import { useReducedMotion } from '@/lib/hooks';
 import { Picture } from './Picture';
 import { BotonPrincipal, EnlaceWhatsapp, H1_CLASS, Titular } from './kit';
 
-const CONFIANZA = ['★ 5,0 en Google', '15 días de garantía de electrónica', 'Listo en una mañana'];
+const CONFIANZA = ['★ 5,0 en Google', '15 días de garantía electrónica', 'Listo en una mañana'];
 
 export function Hero() {
   const foto = useRef<HTMLDivElement>(null);
