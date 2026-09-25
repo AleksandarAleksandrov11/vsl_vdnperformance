@@ -4,7 +4,7 @@
  */
 
 export const SITE = {
-  url: 'https://vsl.vdnperformance.es',
+  url: 'https://www.vdnperformance.com',
   name: 'VDN Performance',
   legalName: 'Diego Sánchez Rabasco',
   nif: '05733122G',

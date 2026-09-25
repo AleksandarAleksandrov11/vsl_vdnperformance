@@ -5,7 +5,7 @@ import { BotonConfigurarCookies } from '@/components/BotonConfigurarCookies';
 
 export const metadata: Metadata = {
   title: 'Política de cookies · VDN Performance',
-  description: 'Qué cookies usa vsl.vdnperformance.es y cómo aceptarlas, rechazarlas o cambiarlas.',
+  description: 'Qué cookies usa www.vdnperformance.com y cómo aceptarlas, rechazarlas o cambiarlas.',
   robots: { index: false, follow: false },
 };
 
