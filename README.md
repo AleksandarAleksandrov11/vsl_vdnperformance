@@ -1,4 +1,4 @@
-# vsl.vdnperformance.es
+# www.vdnperformance.com
 
 Landing de captación para **VDN Performance** (reprogramación de centralitas,
 Collado Villalba). El 90 % del tráfico llega de anuncios de Instagram en móvil,
@@ -160,24 +160,21 @@ momento y se envían los eventos que hubieran quedado en cola.
 4. No hace falta ninguna variable de entorno.
 5. **Deploy**.
 
-### 2. Conectar vsl.vdnperformance.es
+### 2. Dominio
 
-1. En el proyecto: **Settings → Domains → Add**.
-2. Escribe `vsl.vdnperformance.es` y confirma.
-3. Vercel pedirá un registro **CNAME** en el DNS de `vdnperformance.es`:
+La landing se sirve en **`https://www.vdnperformance.com`**, conectado en
+Vercel (**Settings → Domains**). `vdnperformance.com` sin `www` redirige ahí.
+La web principal, `vdnperformance.es`, es otra y no se toca.
 
-   | Tipo | Nombre | Valor |
-   |---|---|---|
-   | CNAME | `vsl` | `cname.vercel-dns.com` |
-
-   Sólo se toca el subdominio `vsl`: **la web principal no se ve afectada.**
-4. Cuando Vercel marque el dominio en verde, emite el certificado HTTPS solo.
-5. Comprueba que el formulario escribe en la hoja de cálculo.
+Ese dominio está escrito en `SITE.url`, en `src/lib/config.ts`. De ahí salen la
+URL canónica, la imagen de vista previa al compartir el enlace, los datos
+estructurados y las páginas legales. **Si algún día cambia el dominio, se
+cambia ahí**: si no, los enlaces compartidos salen sin imagen.
 
 ### 3. Después de publicar
 
 - **Instagram Ads:** usa la URL con parámetros, por ejemplo
-  `https://vsl.vdnperformance.es/?utm_source=instagram&utm_campaign=stage1&utm_content=reel-e46`.
+  `https://www.vdnperformance.com/?utm_source=instagram&utm_campaign=stage1&utm_content=reel-e46`.
 - **Píxel:** en el Administrador de eventos de Meta, comprueba que llegan
   `PageView`, `FormStart`, `Contact` y `Lead`. Recuerda **aceptar las cookies**
   al probarlo: sin consentimiento el píxel no se carga, y eso es lo correcto.

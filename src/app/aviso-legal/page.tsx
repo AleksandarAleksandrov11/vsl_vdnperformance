@@ -4,7 +4,7 @@ import { Apartado, Ficha, PaginaLegal } from '@/components/PaginaLegal';
 
 export const metadata: Metadata = {
   title: 'Aviso legal · VDN Performance',
-  description: 'Información legal del titular de vsl.vdnperformance.es según la LSSI-CE.',
+  description: 'Información legal del titular de www.vdnperformance.com según la LSSI-CE.',
   robots: { index: false, follow: false },
 };
 
