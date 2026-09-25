@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Llamar · VDN Performance</title>
+<!--
+  Pantalla de llamar para la hoja de leads. No es parte de la landing: no
+  enlaza aquí ninguna página y sólo se abre al tocar un teléfono en la hoja.
+
+  Por qué existe: Google Sheets no deja poner enlaces tel: en una celda, y la
+  pantalla que puede servir un Apps Script va dentro de un marco protegido que
+  bloquea las llamadas. Esta página es una página normal, así que el botón de
+  Llamar funciona en cualquier móvil.
+
+  El número va detrás de la # (/llamar/#34611223344) a propósito: esa parte
+  nunca sale del navegador, así que el teléfono del cliente no llega ni al
+  servidor ni a sus registros. Sin cookies, sin analítica y sin nada de terceros.
+-->
+<style>
+  :root { color-scheme: dark; }
+  html, body { margin: 0; background: #050505; color: #f5f5f2;
+    font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 14px; padding: 24px;
+    box-sizing: border-box; text-align: center; }
+  .num { margin: 0 0 10px; font-size: 30px; font-weight: 600; letter-spacing: .01em; }
+  .aviso { margin: 0; color: #8c8c91; }
+  .btn { display: flex; align-items: center; justify-content: center; width: 100%;
+    max-width: 320px; min-height: 60px; border-radius: 999px; background: #1f5cff;
+    color: #fff; font-size: 18px; font-weight: 600; text-decoration: none; }
+  .sec { background: transparent; border: 1px solid rgba(255, 255, 255, .2); }
+  .btn:active { transform: scale(.98); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <p class="num" id="num" hidden></p>
+  <a class="btn" id="llamar" href="#" hidden>Llamar</a>
+  <a class="btn sec" id="whatsapp" href="#" hidden>WhatsApp</a>
+  <p class="aviso" id="aviso" hidden>Este enlace no lleva un teléfono válido.</p>
+</main>
+<script>
+(function () {
+  // Sólo cifras: cualquier otra cosa que venga detrás de la # se descarta.
+  var d = location.hash.slice(1).replace(/\D/g, '');
+  if (d.indexOf('0034') === 0) d = d.slice(2);
+  if (d.length === 9) d = '34' + d;
+
+  if (d.length < 9 || d.length > 15) {
+    document.getElementById('aviso').hidden = false;
+    return;
+  }
+
+  var num = document.getElementById('num');
+  num.textContent = /^34\d{9}$/.test(d)
+    ? d.slice(2).replace(/(\d{3})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4')
+    : '+' + d;
+  num.hidden = false;
+
+  var llamar = document.getElementById('llamar');
+  llamar.href = 'tel:+' + d;
+  llamar.hidden = false;
+
+  var whatsapp = document.getElementById('whatsapp');
+  whatsapp.href = 'https://wa.me/' + d;
+  whatsapp.hidden = false;
+})();
+</script>
+</body>
+</html>

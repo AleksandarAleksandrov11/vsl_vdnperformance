@@ -18,27 +18,35 @@
  *   mover, renombrar o añadir sin tocar el código.
  * · Estado: "X" si el coche es de ANIO_MARCA o más nuevo; "Nuevo" si no.
  * · Teléfono: sale como enlace. Desde el móvil se abre una pantalla con un
- *   botón que llama al cliente (y otro para escribirle por WhatsApp).
+ *   botón que llama al cliente y otro para escribirle por WhatsApp.
+ * · Si falta el título de "Teléfono" o de "Estado", se escriben igualmente en
+ *   su columna de siempre (C y K), para no perder datos.
  *
- * Por qué el teléfono no enlaza directamente a la llamada
- * -------------------------------------------------------
+ * Por qué el teléfono enlaza a la web y no a la llamada
+ * -----------------------------------------------------
  * Google Sheets no admite enlaces tel: en una celda: sólo http, https, mailto
- * y poco más. Así que la celda enlaza a este mismo script, que enseña el
- * botón de llamar. Todo se queda dentro de Google; la web no cambia.
+ * y poco más. Y una pantalla servida por Apps Script tampoco vale: Google la
+ * mete en un marco protegido que bloquea las llamadas (WhatsApp sí funciona,
+ * llamar no). Así que la celda enlaza a vdnperformance.com/llamar/, una
+ * página suelta de la web, fuera de la landing, que sí puede llamar.
  */
 
 var PESTANA = 'Leads';
 
 /** Desde este año, incluido, el Estado sale como "X" en vez de "Nuevo". */
-var ANIO_MARCA = 2020;
+var ANIO_MARCA = 2022;
 
 /**
- * La URL de este mismo script, la que termina en /exec. Es la misma que usa la
- * web para mandar los leads. Si algún día cambia, hay que cambiarla aquí y en
- * la web.
+ * Página de la web que enseña los botones de Llamar y WhatsApp. El número va
+ * detrás de la #, que nunca sale del móvil: ni el servidor lo ve.
  */
-var URL_SCRIPT =
-  'https://script.google.com/macros/s/AKfycbz8ORocSTJkqaaKDZ7gyc1cyMm_3kHrqVdbSfuIJOXrKAfHbnbZyilC_gw0_IFJlyAy/exec';
+var PAGINA_LLAMAR = 'https://www.vdnperformance.com/llamar/#';
+
+/**
+ * Columna de siempre (empezando en 0) de los datos que no se pueden perder.
+ * Sólo se usa si falta su título en la fila 1. Son las que espera sincro.gs.
+ */
+var COLUMNA_FIJA = { 'Teléfono': 2, 'Estado': 10 };
 
 /** Cabecera de la hoja -> nombre del campo que manda la web. */
 var COLUMNAS = {
@@ -80,11 +88,13 @@ function doPost(e) {
         return String(c).trim();
       });
     var tel = normalizarTelefono(p.telefono);
+    var colTel = columna(cabeceras, 'Teléfono');
+    var colEstado = columna(cabeceras, 'Estado');
 
-    var valores = cabeceras.map(function (nombre) {
+    var valores = cabeceras.map(function (nombre, i) {
+      if (i === colTel) return tel ? tel.texto : p.telefono || '';
+      if (i === colEstado) return estado(p.anio);
       if (nombre === 'Fecha') return new Date();
-      if (nombre === 'Estado') return estado(p.anio);
-      if (nombre === 'Teléfono') return tel ? tel.texto : p.telefono || '';
       var campo = COLUMNAS[nombre];
       return campo && p[campo] ? p[campo] : '';
     });
@@ -93,13 +103,12 @@ function doPost(e) {
     hoja.getRange(fila, 1, 1, valores.length).setValues([valores]);
 
     // El teléfono se vuelve a escribir, esta vez como texto con enlace.
-    var col = cabeceras.indexOf('Teléfono');
-    if (col !== -1 && tel) {
+    if (tel && colTel < valores.length) {
       var enlace = SpreadsheetApp.newRichTextValue()
         .setText(tel.texto)
-        .setLinkUrl(URL_SCRIPT + '?llamar=' + tel.digitos)
+        .setLinkUrl(PAGINA_LLAMAR + tel.digitos)
         .build();
-      hoja.getRange(fila, col + 1).setRichTextValue(enlace);
+      hoja.getRange(fila, colTel + 1).setRichTextValue(enlace);
     }
 
     SpreadsheetApp.flush();
@@ -111,7 +120,10 @@ function doPost(e) {
 }
 
 /* ==========================================================================
-   Pantalla de llamar (se abre al tocar un teléfono de la hoja)
+   Pantalla de los enlaces antiguos
+   Los teléfonos que se guardaron antes enlazan a este script en vez de a la
+   web. Esta pantalla los sigue atendiendo: WhatsApp abre directo y Llamar
+   pasa por la página de la web, que es la que puede abrir el marcador.
    ========================================================================== */
 
 function doGet(e) {
@@ -128,7 +140,7 @@ function pantallaLlamar(valor) {
   // llega a la página tal cual.
   var cuerpo = tel
     ? '<p class="num">' + tel.texto + '</p>' +
-      '<a class="btn" href="tel:+' + tel.digitos + '" target="_top">Llamar</a>' +
+      '<a class="btn" href="' + PAGINA_LLAMAR + tel.digitos + '" target="_top">Llamar</a>' +
       '<a class="btn sec" href="https://wa.me/' + tel.digitos + '" target="_top">WhatsApp</a>'
     : '<p>Este enlace no lleva un teléfono válido.</p>';
 
@@ -150,6 +162,12 @@ function pantallaLlamar(valor) {
 /* ==========================================================================
    Ayudas
    ========================================================================== */
+
+/** Posición de una cabecera; si falta su título, la columna de siempre. */
+function columna(cabeceras, nombre) {
+  var i = cabeceras.indexOf(nombre);
+  return i !== -1 ? i : COLUMNA_FIJA[nombre];
+}
 
 /** "X" para coches de ANIO_MARCA en adelante; "Nuevo" para el resto. */
 function estado(anio) {
