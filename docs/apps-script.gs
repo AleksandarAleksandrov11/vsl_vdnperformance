@@ -48,6 +48,9 @@ var PAGINA_LLAMAR = 'https://www.vdnperformance.com/llamar/#';
  */
 var COLUMNA_FIJA = { 'Teléfono': 2, 'Estado': 10 };
 
+/** Formato de la columna Fecha: el mismo que tienen las filas de siempre. */
+var FORMATO_FECHA = 'dd/mm/yyyy h:mm';
+
 /** Cabecera de la hoja -> nombre del campo que manda la web. */
 var COLUMNAS = {
   'Nombre': 'nombre',
@@ -99,8 +102,17 @@ function doPost(e) {
       return campo && p[campo] ? p[campo] : '';
     });
 
-    var fila = hoja.getLastRow() + 1;
-    hoja.getRange(fila, 1, 1, valores.length).setValues([valores]);
+    // appendRow y no getRange: si la hoja se queda sin filas, añade las que
+    // hagan falta. Con getRange, al llegar a la última fila fallaría.
+    hoja.appendRow(valores);
+    var fila = hoja.getLastRow();
+
+    // Google pone "sólo fecha" a una fecha escrita en una fila sin formato. Se
+    // fija el de siempre para que se vea también la hora.
+    var colFecha = cabeceras.indexOf('Fecha');
+    if (colFecha !== -1) {
+      hoja.getRange(fila, colFecha + 1).setNumberFormat(FORMATO_FECHA);
+    }
 
     // El teléfono se vuelve a escribir, esta vez como texto con enlace.
     if (tel && colTel < valores.length) {
