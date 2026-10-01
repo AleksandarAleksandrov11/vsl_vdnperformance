@@ -36,19 +36,10 @@ async function main() {
 
   // Se intercepta el webhook: no queremos escribir en la hoja de verdad.
   let envio = null;
-  let envioEn = 0;
   await page.route('**/script.google.com/**', async (route) => {
-    if (route.request().method() === 'POST') {
-      envio = route.request().postData();
-      envioEn = Date.now();
-    }
+    if (route.request().method() === 'POST') envio = route.request().postData();
     await route.fulfill({ status: 200, body: '' });
   });
-
-  // WhatsApp tampoco sale a internet: basta con ver qué se abriría.
-  await ctx.route('https://wa.me/**', (route) =>
-    route.fulfill({ status: 200, contentType: 'text/html', body: '<p>wa</p>' }),
-  );
 
   // Lo mismo con el píxel, para poder ver qué eventos se dispararían.
   await page.route('**/connect.facebook.net/**', (route) =>
@@ -152,13 +143,13 @@ async function main() {
 
   // Con espacios y prefijo +34, como lo escribe mucha gente.
   await page.locator('#f-telefono').fill('+34 611 22 33 44');
-  let whatsappEn = 0;
-  const ventanaWhatsapp = page.waitForEvent('popup', { timeout: 5000 }).catch(() => null);
-  page.once('popup', () => { whatsappEn = Date.now(); });
+  // Al enviar no se abre nada: ni pestaña nueva ni WhatsApp en la misma.
+  let ventanas = 0;
+  page.on('popup', () => ventanas++);
   await page.getByRole('button', { name: 'Recibir mi precio' }).click();
-  const popup = await ventanaWhatsapp;
-  if (popup) await popup.waitForLoadState();
   await page.waitForTimeout(1400);
+  ok(ventanas === 0, 'Al enviar no se abre WhatsApp ni ninguna ventana');
+  ok(new URL(page.url()).host === new URL(BASE).host, 'La persona se queda en la web', page.url());
 
   /* --- Pantalla final --- */
   const final = await page.locator('text=/Listo, Diego\\./').isVisible();
@@ -193,7 +184,7 @@ async function main() {
     );
   }
 
-  /* --- WhatsApp se abre solo al enviar, con el mensaje escrito --- */
+  /* --- Mensaje del botón de WhatsApp de la pantalla final --- */
   // El motor se contestó con "No lo sé": esa línea no aparece.
   const MENSAJE = [
     'Hola, soy Diego. Estos son los datos de mi coche:',
@@ -205,29 +196,19 @@ async function main() {
     '¿Cuánto le puedo sacar con una buena repro?',
   ].join('\n');
 
-  ok(!!popup, 'Al enviar, se abre WhatsApp solo');
-  if (popup) {
-    const url = new URL(popup.url());
-    ok(url.host === 'wa.me' && url.pathname === '/34711523484', 'Al número de VDN', url.host + url.pathname);
-    const texto = url.searchParams.get('text') ?? '';
-    ok(texto === MENSAJE, 'Con el mensaje exacto', JSON.stringify(texto));
-    ok(!/\p{Extended_Pictographic}/u.test(texto), 'Sin emojis');
-    ok(envioEn > 0 && envioEn <= whatsappEn, 'La hoja recibe el presupuesto antes de que se abra WhatsApp',
-      `${whatsappEn - envioEn} ms antes`);
-    await popup.close();
-  }
   const conversion = await page.evaluate(() =>
     (window.fbq?.queue ?? []).some((a) => a[0] === 'track' && a[1] === 'Lead'),
   );
   ok(conversion, 'La conversión Lead del píxel se registra');
 
-  /* --- El botón de la pantalla final lleva el mismo mensaje --- */
   // El de dentro del formulario, no el botón flotante ni el del pie.
   const wa = await page
     .locator('#presupuesto a[href*="wa.me"]')
     .first()
     .getAttribute('href');
-  ok(new URL(wa).searchParams.get('text') === MENSAJE, 'El botón "Enviar por WhatsApp" repite el mensaje');
+  const texto = new URL(wa).searchParams.get('text') ?? '';
+  ok(texto === MENSAJE, 'El botón "Escribir ahora por WhatsApp" lleva el mensaje ordenado', JSON.stringify(texto));
+  ok(!/\p{Extended_Pictographic}/u.test(texto), 'Sin emojis');
 
   await page.screenshot({ path: '/tmp/form-final.png' });
 
@@ -238,47 +219,6 @@ async function main() {
   ok((await page.locator('#f-modelo').inputValue()) === '', 'El formulario vuelve en blanco');
 
   ok(errores.length === 0, 'Sin errores de consola', errores.join(' | ').slice(0, 200));
-
-  /* --- Navegador que no deja abrir pestañas nuevas --- */
-  // Pasa en algunos navegadores de dentro de apps: window.open no hace nada.
-  // WhatsApp se tiene que abrir igualmente, en la misma pestaña, y la hoja
-  // tiene que recibir el presupuesto antes.
-  {
-    const ctx2 = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, locale: 'es-ES' });
-    await ctx2.addInitScript(() => { window.open = () => null; });
-    const p2 = await ctx2.newPage();
-    let envio2En = 0;
-    await p2.route('**/script.google.com/**', async (route) => {
-      if (route.request().method() === 'POST') envio2En = Date.now();
-      await route.fulfill({ status: 200, body: '' });
-    });
-    await ctx2.route('https://wa.me/**', (route) =>
-      route.fulfill({ status: 200, contentType: 'text/html', body: '<p>wa</p>' }),
-    );
-    await p2.goto(BASE, { waitUntil: 'networkidle' });
-    await p2.waitForTimeout(1400);
-    await p2.getByRole('button', { name: 'Rechazar', exact: true }).click();
-    await p2.getByRole('link', { name: /Calcular mi coche/ }).first().click();
-    await p2.waitForTimeout(900);
-    for (const [id, valor] of [['#f-modelo', 'Seat León'], ['#f-anio', '2019'], ['#f-motor', '1.5 TSI'], ['#f-potencia', '150']]) {
-      await p2.locator(id).fill(valor);
-      await p2.locator(id).press('Enter');
-      await p2.waitForTimeout(550);
-    }
-    await p2.locator('#f-nombre').fill('Laura');
-    await p2.locator('#f-telefono').fill('622334455');
-    await p2.getByRole('button', { name: 'Recibir mi precio' }).click();
-    let navegoEn = 0;
-    try {
-      await p2.waitForURL(/wa\.me/, { timeout: 5000 });
-      navegoEn = Date.now();
-    } catch {}
-    ok(navegoEn > 0, 'Sin pestañas nuevas, WhatsApp se abre en la misma');
-    const texto2 = navegoEn ? new URL(p2.url()).searchParams.get('text') ?? '' : '';
-    ok(texto2.startsWith('Hola, soy Laura.') && texto2.includes('Motor: 1.5 TSI'), 'Con el mensaje de esa persona', JSON.stringify(texto2.slice(0, 60)));
-    ok(envio2En > 0 && envio2En <= navegoEn, 'y la hoja recibe el presupuesto antes');
-    await ctx2.close();
-  }
 
   await browser.close();
   console.log(fallos ? `\n${fallos} comprobaciones fallidas.` : '\nTodo correcto.');
