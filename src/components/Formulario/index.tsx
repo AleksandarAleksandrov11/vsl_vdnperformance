@@ -35,8 +35,8 @@ type Datos = {
 const VACIO: Datos = { modelo: '', anio: '', motor: '', potencia: '', nombre: '', telefono: '' };
 
 /**
- * Mensaje de WhatsApp que sale ya escrito al enviar el formulario, con lo que
- * la persona acaba de contestar: sólo tiene que darle a enviar.
+ * Mensaje de WhatsApp del botón de la pantalla final, ya relleno con lo que la
+ * persona acaba de contestar: no tiene que volver a escribirlo.
  *
  * Una línea por dato y sin emojis, para que en el taller se lea de un vistazo.
  * Lo que la persona no sabía ("No lo sé") no aparece: una línea vacía o un
@@ -63,21 +63,6 @@ function mensajeWhatsapp(d: Datos): string {
   ].join('\n');
 }
 
-/**
- * Abre WhatsApp con el mensaje ya escrito.
- *
- * Primero en una pestaña nueva, para que la landing siga abierta y termine de
- * mandar el lead y la conversión. Si el navegador no deja abrir pestañas, como
- * pasa en algunos navegadores de dentro de apps, se abre en la misma. El lead
- * no se pierde por eso: la petición a la hoja va con keepalive y termina
- * aunque la página se cierre.
- */
-function abrirWhatsapp(url: string) {
-  const ventana = window.open(url, '_blank');
-  if (ventana) ventana.opener = null;
-  else window.location.href = url;
-}
-
 export function Formulario() {
   const [paso, setPaso] = useState(0);
   const [datos, setDatos] = useState<Datos>(VACIO);
@@ -98,18 +83,6 @@ export function Formulario() {
   useEffect(() => {
     capturarUtm();
   }, []);
-
-  /* En la última pregunta se abre ya la conexión con Google. Al enviar, la
-     petición a la hoja sale al momento, antes de que se abra WhatsApp. */
-  useEffect(() => {
-    if (paso !== TOTAL - 1 || document.querySelector('link[data-conexion="hoja"]')) return;
-    const enlace = document.createElement('link');
-    enlace.rel = 'preconnect';
-    enlace.href = 'https://script.google.com';
-    enlace.crossOrigin = 'anonymous';
-    enlace.dataset.conexion = 'hoja';
-    document.head.appendChild(enlace);
-  }, [paso]);
 
   /**
    * Foco en el campo de cada pantalla, pero sólo después de que la persona haya
@@ -234,12 +207,7 @@ export function Formulario() {
       return;
     }
 
-    /* El orden importa, porque WhatsApp se lleva a la persona fuera de la web:
-       1. La petición a la hoja sale ya (enviarLead la lanza al llamarla).
-       2. La conversión del píxel, también antes de salir de la página.
-       3. WhatsApp con el mensaje escrito, un instante después. Tiene que ser
-          dentro del mismo toque: pasado un segundo, iOS ya no deja abrirlo. */
-    const envio = enviarLead({
+    await enviarLead({
       nombre: datos.nombre.trim(),
       telefono,
       modelo: datos.modelo.trim(),
@@ -251,11 +219,6 @@ export function Formulario() {
     });
 
     trackLead(eventId);
-
-    const whatsapp = waLink(mensajeWhatsapp(datos));
-    setTimeout(() => abrirWhatsapp(whatsapp), 350);
-
-    await envio;
 
     /* La pantalla final se enseña pase lo que pase. Con `mode: 'no-cors'` la
        respuesta es opaca y no hay forma de saber si la hoja lo guardó; dejar a
@@ -673,17 +636,15 @@ function PantallaFinal({ datos, onOtro }: { datos: Datos; onOtro: () => void }) 
       </p>
 
       <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
-        {/* WhatsApp se abre solo al enviar. Este botón es para quien vuelve
-            sin haberlo mandado o si su navegador no dejó abrirlo. */}
         <a
           href={waLink(mensajeWhatsapp(datos))}
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => trackContact('whatsapp')}
-          className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-full bg-accent px-7 text-[0.9375rem] font-medium text-white transition-colors duration-300 hover:bg-accent-hi sm:w-auto"
+          className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-full border border-hair px-7 text-[0.9375rem] font-medium text-ink transition-colors duration-300 hover:border-white/30 sm:w-auto"
         >
           <IconoWhatsapp className="h-4 w-4" />
-          Enviar por WhatsApp
+          Escribir ahora por WhatsApp
         </a>
 
         {/* Mucha gente tiene dos coches. Si no hay forma de volver a empezar,
