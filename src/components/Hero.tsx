@@ -14,16 +14,16 @@ export function Hero() {
   const reduced = useReducedMotion();
 
   /**
-   * Dos movimientos sobre la misma capa, combinados en un solo transform:
-   * un zoom lento al cargar (1,08 → 1) y un parallax suave al hacer scroll.
-   * Se lee el scroll dentro de un rAF y se para en cuanto el hero sale de
-   * pantalla, así que no se nota en el hilo principal.
+   * Parallax suave al hacer scroll. El zoom de entrada (1,08 → 1) va en CSS
+   * (.hero-zoom) sobre la capa de dentro, para que empiece con el primer
+   * pintado sin esperar a este JS. Se lee el scroll dentro de un rAF y se para
+   * en cuanto el hero sale de pantalla, así que no se nota en el hilo principal.
    */
   useEffect(() => {
     const el = foto.current;
     if (!el) return;
     /* Se consulta aquí y no por el estado de React: el estado llega un render
-       más tarde y para entonces el zoom ya habría dejado un transform puesto. */
+       más tarde y para entonces ya habría un transform puesto. */
     if (reduced || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       el.style.transform = '';
       return;
@@ -31,8 +31,6 @@ export function Hero() {
 
     let raf = 0;
     let dentro = true;
-    const t0 = performance.now();
-    const DURACION_ZOOM = 2600;
 
     const io =
       typeof IntersectionObserver !== 'undefined'
@@ -42,24 +40,16 @@ export function Hero() {
         : undefined;
     io?.observe(el);
 
-    const pintar = (t: number) => {
-      const p = Math.min(1, (t - t0) / DURACION_ZOOM);
-      const eased = 1 - Math.pow(1 - p, 3);
-      const escala = 1.08 - 0.08 * eased;
+    const pintar = () => {
       const y = Math.min(window.scrollY * 0.3, 120);
-      el.style.transform = `translate3d(0, ${y.toFixed(1)}px, 0) scale(${escala.toFixed(4)})`;
-      if (p < 1) raf = requestAnimationFrame(pintar);
-      else raf = 0;
+      el.style.transform = `translate3d(0, ${y.toFixed(1)}px, 0)`;
+      raf = 0;
     };
-    raf = requestAnimationFrame(pintar);
+    if (window.scrollY > 0) pintar();
 
     const onScroll = () => {
       if (raf || !dentro) return;
-      raf = requestAnimationFrame(() => {
-        const y = Math.min(window.scrollY * 0.3, 120);
-        el.style.transform = `translate3d(0, ${y.toFixed(1)}px, 0) scale(1)`;
-        raf = 0;
-      });
+      raf = requestAnimationFrame(pintar);
     };
     window.addEventListener('scroll', onScroll, { passive: true });
 
@@ -104,7 +94,7 @@ export function Hero() {
           sizes="100vw"
           priority
           alt="BMW Serie 3 recién reprogramado saliendo del taller de VDN Performance en Collado Villalba"
-          className="block h-full w-full"
+          className="hero-zoom block h-full w-full"
           imgClassName="photo h-full w-full object-cover"
         />
       </div>
@@ -117,7 +107,7 @@ export function Hero() {
         <Titular
           as="h1"
           lineas={['Tu coche', 'puede dar más.']}
-          delay={120}
+          alCargar
           className={`${H1_CLASS} mt-5 max-w-[14ch]`}
         />
 

@@ -100,3 +100,10 @@ export function useScrollY(): number {
   }, []);
   return y;
 }
+
+/**
+ * Para `<LazyMotion features={cargarAnimaciones}>`: el motor de animación se
+ * descarga después de la carga inicial, en un archivo aparte, y no retrasa el
+ * primer pintado. Es el patrón de carga diferida que documenta framer-motion.
+ */
+export const cargarAnimaciones = () => import('./animaciones').then((r) => r.default);

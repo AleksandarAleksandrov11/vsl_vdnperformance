@@ -350,131 +350,37 @@
   transform: none;
 }
 
-/* ==========================================================================
-   Entrada: el coche pasa y detrás se descubre la página
-   Todo con transform, opacity y clip-path. Ni un reflow, ni una línea de JS.
-   ========================================================================== */
-
-.intro {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  overflow: hidden;
-  pointer-events: none;
-  animation: intro-fin 1s steps(1, end) forwards;
+/* La misma subida, pero arrancando con el primer pintado y sin JS: es la del
+   titular del hero. Sin la animación (o sin soporte), el texto queda en su
+   sitio, visible. */
+.line-mask-carga > span {
+  transform: none;
+  animation: linea-sube 900ms var(--ease-brand) both;
 }
 
-/* El negro que se retira hacia la derecha, justo por detrás del coche. */
-.intro-panel {
-  position: absolute;
-  inset: 0;
-  background: var(--color-void);
-  clip-path: inset(0 0 0 0);
-  animation: intro-abre 685ms cubic-bezier(0.36, 0.02, 0.32, 1) 165ms forwards;
-}
-
-.intro-pista {
-  position: absolute;
-  inset: 0;
-}
-
-.intro-coche {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 64vw;
-  transform: translate3d(calc(-100% - 4vw), -50%, 0);
-  animation: intro-pasa 780ms cubic-bezier(0.36, 0.02, 0.32, 1) forwards;
-}
-
-@media (min-width: 48rem) {
-  .intro-coche {
-    width: 26vw;
-  }
-}
-
-/* Filo de luz que viaja con el borde del barrido. */
-.intro-filo {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 18vw;
-  background: linear-gradient(to right, rgba(75, 125, 255, 0) 0%, rgba(120, 160, 255, 0.22) 72%, rgba(220, 234, 255, 0.5) 100%);
-  transform: translate3d(-100%, 0, 0);
-  animation: intro-filo 685ms cubic-bezier(0.36, 0.02, 0.32, 1) 165ms forwards;
-}
-
-@keyframes intro-filo {
+@keyframes linea-sube {
   from {
-    transform: translate3d(-100%, 0, 0);
-    opacity: 1;
+    transform: translate3d(0, 105%, 0);
   }
   to {
-    transform: translate3d(556%, 0, 0);
-    opacity: 0;
+    transform: none;
   }
 }
 
-/* Estelas: una barra de luz que cruza y se apaga. */
-.intro-raya {
-  position: absolute;
-  top: var(--y);
-  left: 0;
-  height: 2px;
-  width: var(--w);
-  border-radius: 2px;
-  background: linear-gradient(to right, transparent, rgba(140, 170, 255, 0.55), transparent);
-  transform: translate3d(-110%, 0, 0);
-  opacity: 0;
-  animation: intro-raya 720ms cubic-bezier(0.36, 0.02, 0.32, 1) var(--d) forwards;
+/* Zoom lento de la foto del hero al cargar (1,08 → 1). En CSS para que empiece
+   con el primer pintado; el parallax del scroll lo pone el JS en la capa de
+   fuera, así que los dos no se pisan. */
+.hero-zoom {
+  animation: hero-zoom 2600ms cubic-bezier(0.33, 1, 0.68, 1) backwards;
 }
 
-@keyframes intro-pasa {
+@keyframes hero-zoom {
   from {
-    transform: translate3d(calc(-100% - 4vw), -50%, 0);
+    transform: scale(1.08);
   }
   to {
-    transform: translate3d(calc(100vw + 4vw), -50%, 0);
+    transform: scale(1);
   }
-}
-
-@keyframes intro-abre {
-  from {
-    clip-path: inset(0 0 0 0);
-  }
-  to {
-    clip-path: inset(0 0 0 100%);
-  }
-}
-
-@keyframes intro-raya {
-  0% {
-    transform: translate3d(-110%, 0, 0);
-    opacity: 0;
-  }
-  18% {
-    opacity: 1;
-  }
-  70% {
-    opacity: 0.7;
-  }
-  100% {
-    transform: translate3d(260%, 0, 0);
-    opacity: 0;
-  }
-}
-
-@keyframes intro-fin {
-  to {
-    visibility: hidden;
-  }
-}
-
-/* Segunda visita de la sesión, o alguien que ha pedido menos movimiento: la
-   página entra directamente, sin intro. */
-html[data-intro='visto'] .intro {
-  display: none;
 }
 
 /* Revelado de imagen: barrido con clip-path y un zoom de 1.06 a 1. */
@@ -587,10 +493,6 @@ html[data-intro='visto'] .intro {
   .anim-marquee {
     animation: none !important;
     transform: none !important;
-  }
-
-  .intro {
-    display: none !important;
   }
 
   .reveal-img {

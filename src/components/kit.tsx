@@ -50,22 +50,35 @@ export function Titular({
   delay = 0,
   as = 'h2',
   id,
+  alCargar = false,
 }: {
   lineas: string[];
   className?: string;
   delay?: number;
   as?: 'h1' | 'h2';
   id?: string;
+  /**
+   * Para el titular del hero: la subida la hace el CSS desde el primer
+   * fotograma, sin esperar a que React hidrate ni a un IntersectionObserver.
+   * Con el JS bloqueado o lento, el titular se ve igual.
+   */
+  alCargar?: boolean;
 }) {
   const [ref, visible] = useInViewOnce<HTMLHeadingElement>({ threshold: 0.2 });
   const Comp = as;
   return (
-    <Comp id={id} ref={ref} className={className}>
-      {lineas.map((linea, i) => (
-        <span key={linea} className="line-mask" data-visible={visible ? 'true' : 'false'}>
-          <span style={{ transitionDelay: `${delay + i * 90}ms` }}>{linea}</span>
-        </span>
-      ))}
+    <Comp id={id} ref={alCargar ? undefined : ref} className={className}>
+      {lineas.map((linea, i) =>
+        alCargar ? (
+          <span key={linea} className="line-mask line-mask-carga">
+            <span style={{ animationDelay: `${delay + i * 90}ms` }}>{linea}</span>
+          </span>
+        ) : (
+          <span key={linea} className="line-mask" data-visible={visible ? 'true' : 'false'}>
+            <span style={{ transitionDelay: `${delay + i * 90}ms` }}>{linea}</span>
+          </span>
+        ),
+      )}
     </Comp>
   );
 }

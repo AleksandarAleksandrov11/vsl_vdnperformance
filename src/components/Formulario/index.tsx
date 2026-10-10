@@ -1,10 +1,10 @@
 'use client';
 
-import { AnimatePresence, LazyMotion, domAnimation, m } from 'framer-motion';
+import { AnimatePresence, LazyMotion, m } from 'framer-motion';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { FORM_ID, waLink } from '@/lib/config';
-import { useReducedMotion } from '@/lib/hooks';
+import { cargarAnimaciones, useReducedMotion } from '@/lib/hooks';
 import { capturarUtm, enviarLead } from '@/lib/leads';
 import { nuevoEventId, trackContact, trackFormStart, trackLead } from '@/lib/tracking';
 import { Eyebrow, Flecha, IconoWhatsapp } from '../kit';
@@ -240,7 +240,7 @@ export function Formulario() {
       aria-labelledby="form-t"
       className="tex-glow relative isolate flex min-h-[100svh] scroll-mt-0 flex-col bg-void"
     >
-      <LazyMotion features={domAnimation} strict>
+      <LazyMotion features={cargarAnimaciones} strict>
         <div className="shell relative z-10 flex flex-1 flex-col justify-center py-20 lg:py-24">
           <div ref={panelRef} className="mx-auto w-full max-w-[40rem]">
             <AnimatePresence mode="wait" initial={false}>

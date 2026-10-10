@@ -1,10 +1,10 @@
 'use client';
 
-import { AnimatePresence, LazyMotion, domAnimation, m } from 'framer-motion';
+import { AnimatePresence, LazyMotion, m } from 'framer-motion';
 import { useId, useRef, useState } from 'react';
 import { FORM_ID } from '@/lib/config';
 import { STAGES } from '@/lib/content';
-import { useReducedMotion } from '@/lib/hooks';
+import { cargarAnimaciones, useReducedMotion } from '@/lib/hooks';
 import { Picture } from './Picture';
 import { BotonPrincipal, Eyebrow, H2_CLASS, Reveal, Section, Titular } from './kit';
 
@@ -75,7 +75,7 @@ export function Stages() {
         </Reveal>
 
         {/* --- Panel --- */}
-        <LazyMotion features={domAnimation} strict>
+        <LazyMotion features={cargarAnimaciones} strict>
           <div
             role="tabpanel"
             id={`${baseId}-panel-${activo}`}
