@@ -7,7 +7,8 @@ así que está diseñada primero para móvil.
 Un único objetivo: que la persona rellene el formulario o escriba por WhatsApp.
 
 - **Stack:** Next.js 16 (App Router) · TypeScript · Tailwind CSS 4 · Framer Motion
-- **Salida:** exportación estática (`output: 'export'`) → carpeta `out/`
+- **Salida:** páginas prerenderizadas (estáticas, servidas desde la CDN de Vercel)
+  más una función de servidor, `/api/lead/`
 - **Rutas:** `/`, `/aviso-legal`, `/politica-privacidad`, `/politica-cookies`
 
 ---
@@ -17,8 +18,8 @@ Un único objetivo: que la persona rellene el formulario o escriba por WhatsApp.
 ```bash
 npm install
 npm run dev        # http://localhost:3000
-npm run build      # genera out/
-npm start          # sirve out/ en local, tal cual se verá en producción
+npm run build      # genera .next/ (npm start lo sirve en :3000)
+npm start          # sirve el build en local, tal cual se verá en producción
 ```
 
 | Comando | Qué hace |
@@ -103,15 +104,19 @@ src/
 
 Cinco pantallas, una pregunta en cada una. Al enviar:
 
-1. Se hace `POST` al Apps Script (`SHEETS_WEBHOOK_URL` en `config.ts`) con
-   `mode: 'no-cors'` y `URLSearchParams`. Sin JSON ni cabeceras propias: Apps
-   Script lee `e.parameter` y así no hay CORS.
-2. Campos: `nombre`, `telefono`, `modelo`, `anio`, `motor`, `potencia`,
-   `utm_source`, `utm_campaign`, `utm_content`, `event_id`, `website`.
-3. La petición se corta a los 8 segundos. La pantalla final se muestra siempre,
-   incluso si falla la red: con `no-cors` la respuesta es opaca y no se puede
-   saber si la hoja lo guardó. Si algo ha ido mal, el botón de WhatsApp de esa
-   pantalla recupera el contacto.
+1. El navegador hace `POST` en JSON a **`/api/lead/`** (`src/app/api/lead/route.ts`).
+2. La función lo reenvía al Apps Script (`SHEETS_WEBHOOK_URL` en `config.ts`)
+   con los mismos campos de siempre (`nombre`, `telefono`, `modelo`, `anio`,
+   `motor`, `potencia`, `objetivo`, `utm_*`, `event_id`, `website`) y **lee su
+   respuesta**. Desde el navegador eso era imposible: con `no-cors` la respuesta
+   de Google llega opaca.
+3. Si la hoja contesta `{"ok":true}`, la web enseña la pantalla final y dispara
+   el `Lead` del píxel. Si no hay red, se corta (25 s) o la hoja falla, sale un
+   aviso en el formulario, no se mide nada y lo rellenado sigue ahí para volver
+   a enviarlo.
+4. Plan B: si algún despliegue saliera sin la función (404), se manda directo
+   al Apps Script como antes. Se enseña la pantalla final, pero sin `Lead`,
+   porque no hay forma de confirmar que se guardó.
 
 ### Por qué se manda `objetivo` además de `potencia`
 
@@ -129,8 +134,9 @@ Las tres columnas `utm_` sólo se rellenan si la visita llega por un enlace que
 los traiga, que es lo que hacen los anuncios. Entrando a la web a pelo salen
 vacías, y es lo correcto.
 
-`event_id` es un UUID que se manda a la vez a la hoja y al evento `Lead` del
-píxel, para poder conectar la API de Conversiones sin duplicar conversiones.
+`event_id` es un UUID que se manda a la vez a la hoja, al `Lead` del píxel y
+al `Lead` de la API de Conversiones: Meta ve el mismo ID por los dos caminos y
+lo cuenta una sola vez.
 
 ## Medición
 
@@ -138,12 +144,35 @@ Todo pasa por `src/lib/tracking.ts`. **El píxel de Meta no se carga hasta que e
 usuario acepta las cookies de marketing.** Si acepta más tarde, se carga en ese
 momento y se envían los eventos que hubieran quedado en cola.
 
-| Momento | Evento |
+| Momento | Evento | Parámetros |
+|---|---|---|
+| Carga de la página, o justo al aceptar (sin recargar) | `PageView` | — |
+| Completa la primera pregunta | `ViewContent` | `content_name: "Calculadora"` |
+| Lo mismo (se mantiene por compatibilidad) | `FormStart` (personalizado) | — |
+| Clic en cualquier enlace `wa.me` o `tel:` de cualquier página | `Contact` | `content_category: whatsapp \| telefono` |
+| La hoja confirma que guardó el presupuesto | `Lead` | `content_name`, `value: 219`, `currency: EUR`, `eventID` |
+
+`Contact` se mide con un único listener en `initTracking`, no botón a botón:
+cualquier enlace nuevo de WhatsApp o teléfono queda medido sin tocar nada.
+
+Con consentimiento, el `fbclid` del anuncio se guarda en la cookie `_fbc`
+(`fb.1.<ms>.<fbclid>`, dominio `.vdnperformance.com`, 90 días). Sin
+consentimiento sólo se guarda en memoria y no se escribe nada.
+
+### API de Conversiones (CAPI)
+
+La manda `/api/lead/` con el `Lead`, **sólo si la persona aceptó marketing** y
+la hoja confirmó el guardado. Qué se envía exactamente está documentado en
+`src/lib/capi.ts`: teléfono, nombre y apellidos en SHA-256, `fbp` y `fbc`, el
+user agent (Meta lo exige en eventos web), la URL y los mismos `content_name`,
+`value` y `currency` que el píxel. Ni la IP, ni el coche, ni los UTM.
+
+Variables de entorno en Vercel (**Settings → Environment Variables**):
+
+| Variable | Para qué |
 |---|---|
-| Carga de la página (con consentimiento) | `PageView` |
-| Responde la primera pregunta | `FormStart` (personalizado) |
-| Clic en WhatsApp o en el teléfono | `Contact` |
-| Formulario enviado | `Lead` · 219 € · EUR · con `eventID` |
+| `META_CAPI_TOKEN` | Token de acceso de la API de Conversiones (Administrador de eventos → píxel → Configuración → Generar token). **Sin él, la CAPI no se manda** y todo lo demás funciona igual. |
+| `META_TEST_EVENT_CODE` | Opcional. El código de "Probar eventos" para ver los Lead de prueba en el Administrador de eventos. Quitarlo después. |
 
 ---
 
@@ -156,8 +185,9 @@ momento y se envían los eventos que hubieran quedado en cola.
 3. Vercel detecta Next.js solo. Deja los valores por defecto:
    - Framework preset: **Next.js**
    - Build command: `npm run build`
-   - Output directory: *(vacío; con `output: 'export'` Vercel sirve `out/`)*
-4. No hace falta ninguna variable de entorno.
+   - Output directory: *(vacío, el de Next.js por defecto)*
+4. Variables de entorno: `META_CAPI_TOKEN` para la API de Conversiones (ver
+   arriba). Sin ella la web funciona igual, sólo que sin CAPI.
 5. **Deploy**.
 
 ### 2. Dominio

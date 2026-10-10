@@ -4,7 +4,7 @@
  * Comprueba lo que no se ve en una captura: que el cuentarrevoluciones avanza,
  * que Enter pasa de pregunta, que "No lo sé" guarda el valor correcto, que la
  * validación salta cuando toca, que el envío llega al webhook con los campos
- * exactos y que el mensaje de WhatsApp final se arma bien.
+ * exactos (a /api/lead/, interceptado) y que el mensaje de WhatsApp final se arma bien.
  *
  *   node scripts/test-form.mjs [url]
  */
@@ -34,12 +34,14 @@ async function main() {
   page.on('pageerror', (e) => errores.push(e.message));
   page.on('console', (m) => m.type() === 'error' && errores.push(m.text()));
 
-  // Se intercepta el webhook: no queremos escribir en la hoja de verdad.
+  // Se intercepta /api/lead/ (y Google, por si acaso): no queremos escribir en
+  // la hoja de verdad. La función contesta como si la hoja lo hubiera guardado.
   let envio = null;
-  await page.route('**/script.google.com/**', async (route) => {
-    if (route.request().method() === 'POST') envio = route.request().postData();
-    await route.fulfill({ status: 200, body: '' });
+  await page.route('**/api/lead/**', async (route) => {
+    if (route.request().method() === 'POST') envio = route.request().postDataJSON();
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
   });
+  await page.route('**/script.google.com/**', (route) => route.fulfill({ status: 200, body: '' }));
 
   // Lo mismo con el píxel, para poder ver qué eventos se dispararían.
   await page.route('**/connect.facebook.net/**', (route) =>
@@ -156,9 +158,9 @@ async function main() {
   ok(final, 'Se muestra la pantalla final con el nombre');
 
   /* --- Lo que se manda a la hoja --- */
-  ok(!!envio, 'El formulario envía al webhook de Google');
+  ok(!!envio, 'El formulario envía a /api/lead/');
   if (envio) {
-    const p = new URLSearchParams(envio);
+    const p = new Map(Object.entries(envio).map(([k, v]) => [k, typeof v === 'string' ? v : JSON.stringify(v)]));
     const esperado = {
       nombre: 'Diego',
       telefono: '611223344',
@@ -166,7 +168,6 @@ async function main() {
       anio: '2016',
       motor: 'No lo sabe',
       potencia: '150',
-      objetivo: '150',
       utm_source: 'facebook',
       utm_campaign: 'stage1-villalba',
       utm_content: 'video-e46',
@@ -176,9 +177,10 @@ async function main() {
       ok(p.get(k) === v, `Campo ${k}`, `"${p.get(k)}"`);
     }
     ok(/^[0-9a-f-]{20,}$/i.test(p.get('event_id') ?? ''), 'event_id es un UUID', p.get('event_id'));
-    const campos = [...p.keys()].sort().join(',');
+    const campos = [...Object.keys(envio)].sort().join(',');
     ok(
-      campos === 'anio,event_id,modelo,motor,nombre,objetivo,potencia,telefono,utm_campaign,utm_content,utm_source,website',
+      // fbp y fbc sólo van si existen esas cookies (aquí el píxel está simulado y no las crea).
+      campos === 'anio,event_id,marketing,modelo,motor,nombre,potencia,telefono,url,utm_campaign,utm_content,utm_source,website',
       'No se manda ningún campo de más',
       campos,
     );

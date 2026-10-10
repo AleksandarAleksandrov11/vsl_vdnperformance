@@ -2,3 +2,5 @@
 # No debe indexarse ni competir en Google con vdnperformance.es.
 User-agent: *
 Disallow: /
+
+Sitemap: https://www.vdnperformance.com/sitemap.xml

@@ -2,7 +2,6 @@
 
 import { type ReactNode } from 'react';
 import { FORM_ID, TEL_LINK, waLink } from '@/lib/config';
-import { trackContact } from '@/lib/tracking';
 import { useCountUp, useInViewOnce } from '@/lib/hooks';
 
 /* ==========================================================================
@@ -241,7 +240,6 @@ export function EnlaceWhatsapp({
       href={waLink(mensaje)}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => trackContact('whatsapp')}
       className={className}
     >
       {children}
@@ -251,7 +249,7 @@ export function EnlaceWhatsapp({
 
 export function EnlaceTelefono({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <a href={TEL_LINK} onClick={() => trackContact('telefono')} className={className}>
+    <a href={TEL_LINK} className={className}>
       {children}
     </a>
   );

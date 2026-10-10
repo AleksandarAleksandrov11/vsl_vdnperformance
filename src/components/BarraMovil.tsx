@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { FORM_ID, waLink } from '@/lib/config';
-import { trackContact } from '@/lib/tracking';
 import { IconoWhatsapp } from './kit';
 
 /**
@@ -93,7 +92,6 @@ export function BarraMovil() {
           href={waLink()}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => trackContact('whatsapp')}
           tabIndex={visible ? 0 : -1}
           aria-label="Escríbenos por WhatsApp"
           className="grid h-14 w-14 shrink-0 place-items-center rounded-full border border-hair text-ink transition-colors duration-300 active:scale-[0.98]"
