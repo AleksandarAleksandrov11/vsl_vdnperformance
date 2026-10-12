@@ -68,39 +68,67 @@ export type Lead = {
 };
 
 /**
- * Manda el lead al Apps Script.
- *
- * `mode: 'no-cors'` + `URLSearchParams` a propósito: Apps Script no devuelve
- * cabeceras CORS, así que con JSON el navegador haría un preflight OPTIONS que
- * Google rechaza. Con un cuerpo de formulario no hay preflight, Apps Script lo
- * lee en `e.parameter` y el POST llega. A cambio la respuesta es opaca: no se
- * puede saber si la hoja lo guardó, sólo si la petición salió del navegador.
- *
- * Por eso la pantalla final se enseña siempre: si algo falla, el usuario ve el
- * botón de WhatsApp como camino principal y el lead no se pierde.
+ * Resultado del envío:
+ *  · 'ok' ............. la hoja confirmó que lo guardó. Sólo entonces sale el Lead.
+ *  · 'sin-confirmar' .. /api/lead/ no existe (un despliegue sin la función):
+ *                       se manda directo a la hoja como antes, pero no hay
+ *                       forma de saber si llegó, así que no se mide Lead.
+ *  · 'error' .......... sin red, se cortó o la hoja falló. El formulario avisa
+ *                       y la persona puede volver a enviar sin reescribir nada.
  */
-export async function enviarLead(lead: Lead): Promise<{ ok: boolean }> {
-  /* `objetivo` es la potencia otra vez, con el nombre que espera el Apps Script
-     publicado: su columna "Potencia de serie" lee ese campo, no `potencia`.
-     Se mandan los dos para no depender de qué versión del script esté
-     desplegada; el que no se use, el script lo ignora. */
+export type ResultadoEnvio = 'ok' | 'sin-confirmar' | 'error';
+
+/** Lo que el navegador añade para la API de Conversiones (sólo con consentimiento). */
+export type ExtraMedicion = { marketing: boolean; fbp?: string; fbc?: string };
+
+/**
+ * Manda el lead a /api/lead/, que lo reenvía al Apps Script y contesta si la
+ * hoja lo guardó de verdad.
+ */
+export async function enviarLead(lead: Lead, extra: ExtraMedicion): Promise<ResultadoEnvio> {
+  const cuerpo = {
+    ...lead,
+    ...leerUtm(),
+    ...extra,
+    url: `${window.location.origin}${window.location.pathname}`,
+  };
+
+  /* Con mala cobertura una petición se puede quedar colgada minutos. El Apps
+     Script tarda de 2 a 8 segundos; a los 25 se da por perdida y se avisa. */
+  const corte = AbortSignal.timeout ? AbortSignal.timeout(25000) : undefined;
+
+  try {
+    const r = await fetch('/api/lead/', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(cuerpo),
+      signal: corte,
+    });
+    if (r.status === 404 || r.status === 405) return enviarDirecto(lead);
+    const json = (await r.json().catch(() => null)) as { ok?: boolean } | null;
+    return r.ok && json?.ok === true ? 'ok' : 'error';
+  } catch {
+    return 'error';
+  }
+}
+
+/**
+ * Plan B, el envío de antes: directo al Apps Script con `mode: 'no-cors'`.
+ * Apps Script no devuelve cabeceras CORS, así que la respuesta llega opaca:
+ * sólo se sabe que la petición salió, no si la hoja la guardó.
+ */
+async function enviarDirecto(lead: Lead): Promise<ResultadoEnvio> {
   const datos = new URLSearchParams({ ...lead, objetivo: lead.potencia, ...leerUtm() });
-
-  /* Con cobertura mala una petición se puede quedar colgada minutos. Ocho
-     segundos y se corta: es mejor enseñar la pantalla final con el botón de
-     WhatsApp que dejar a alguien mirando un "Enviando...". */
-  const corte = AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined;
-
   try {
     await fetch(SHEETS_WEBHOOK_URL, {
       method: 'POST',
       mode: 'no-cors',
       body: datos,
-      signal: corte,
+      signal: AbortSignal.timeout ? AbortSignal.timeout(15000) : undefined,
       keepalive: true,
     });
-    return { ok: true };
+    return 'sin-confirmar';
   } catch {
-    return { ok: false };
+    return 'error';
   }
 }

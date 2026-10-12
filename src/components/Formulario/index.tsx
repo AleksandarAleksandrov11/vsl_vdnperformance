@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { FORM_ID, waLink } from '@/lib/config';
 import { cargarAnimaciones, useReducedMotion } from '@/lib/hooks';
 import { capturarUtm, enviarLead } from '@/lib/leads';
-import { nuevoEventId, trackContact, trackFormStart, trackLead } from '@/lib/tracking';
+import { datosMedicion, nuevoEventId, trackFormStart, trackLead } from '@/lib/tracking';
 import { Eyebrow, Flecha, IconoWhatsapp } from '../kit';
 import {
   CV_MAX,
@@ -207,23 +207,31 @@ export function Formulario() {
       return;
     }
 
-    await enviarLead({
-      nombre: datos.nombre.trim(),
-      telefono,
-      modelo: datos.modelo.trim(),
-      anio: datos.anio,
-      motor: datos.motor.trim() || NO_LO_SABE,
-      potencia: datos.potencia.trim() || NO_LO_SABE,
-      event_id: eventId,
-      website: '',
-    });
+    const resultado = await enviarLead(
+      {
+        nombre: datos.nombre.trim(),
+        telefono,
+        modelo: datos.modelo.trim(),
+        anio: datos.anio,
+        motor: datos.motor.trim() || NO_LO_SABE,
+        potencia: datos.potencia.trim() || NO_LO_SABE,
+        event_id: eventId,
+        website: '',
+      },
+      datosMedicion(),
+    );
 
-    trackLead(eventId);
+    /* Sin red, cortado o la hoja falló: se avisa y todo lo contestado sigue en
+       su sitio. Basta con volver a pulsar "Recibir mi precio". */
+    if (resultado === 'error') {
+      setError('No se ha podido enviar. Revisa la conexión y vuelve a pulsar «Recibir mi precio».');
+      setEnviando(false);
+      return;
+    }
 
-    /* La pantalla final se enseña pase lo que pase. Con `mode: 'no-cors'` la
-       respuesta es opaca y no hay forma de saber si la hoja lo guardó; dejar a
-       la persona colgada sería peor. Si algo falla, el botón de WhatsApp que ve
-       a continuación recupera el contacto. */
+    // El Lead sólo se mide cuando la hoja confirma que lo guardó.
+    if (resultado === 'ok') trackLead(eventId);
+
     setHecho(true);
     setEnviando(false);
   }
@@ -337,6 +345,8 @@ export function Formulario() {
                               onChange={(v) => set('modelo', v)}
                               placeholder="Audi A3, Golf GTI…"
                               autoComplete="off"
+                              autoCapitalize="words"
+                              corrector={false}
                               onFocus={() => setInteractuado(true)}
                             />
                           </Pregunta>
@@ -368,6 +378,8 @@ export function Formulario() {
                               onChange={(v) => set('motor', v)}
                               placeholder="2.0 TDI, 1.5 TSI…"
                               autoComplete="off"
+                              autoCapitalize="characters"
+                              corrector={false}
                             />
                             <NoLoSe onClick={() => noLoSe('motor')} />
                           </Pregunta>
@@ -403,7 +415,8 @@ export function Formulario() {
                                 value={datos.nombre}
                                 onChange={(v) => set('nombre', v)}
                                 placeholder="Nombre"
-                                autoComplete="given-name"
+                                autoComplete="name"
+                                autoCapitalize="words"
                               />
                               <Campo
                                 id="f-telefono"
@@ -517,6 +530,10 @@ type CampoProps = {
   max?: number;
   onFocus?: () => void;
   enterHint?: 'next' | 'send';
+  /** 'words' para nombres y modelos: el teclado pone la mayúscula solo. */
+  autoCapitalize?: 'off' | 'words' | 'characters';
+  /** false en modelo y motor: el corrector cambia "TDI" o "GTI" por palabras. */
+  corrector?: boolean;
   ref?: React.Ref<HTMLInputElement>;
 };
 
@@ -536,6 +553,8 @@ function Campo({
   max,
   onFocus,
   enterHint = 'next',
+  autoCapitalize,
+  corrector = true,
   ref,
 }: CampoProps) {
   return (
@@ -557,6 +576,9 @@ function Campo({
         maxLength={maxLength}
         autoComplete={autoComplete}
         enterKeyHint={enterHint}
+        autoCapitalize={autoCapitalize}
+        autoCorrect={corrector ? undefined : 'off'}
+        spellCheck={corrector ? undefined : false}
         aria-describedby={min !== undefined ? `${id}-rango` : undefined}
         className="peer w-full border-b border-hair bg-transparent pb-4 text-[1.375rem] text-ink transition-colors duration-300 outline-none placeholder:text-muted-dark focus:border-accent sm:text-[1.625rem]"
         style={sufijo ? { paddingRight: '3rem' } : undefined}
@@ -640,7 +662,6 @@ function PantallaFinal({ datos, onOtro }: { datos: Datos; onOtro: () => void }) 
           href={waLink(mensajeWhatsapp(datos))}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => trackContact('whatsapp')}
           className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-full border border-hair px-7 text-[0.9375rem] font-medium text-ink transition-colors duration-300 hover:border-white/30 sm:w-auto"
         >
           <IconoWhatsapp className="h-4 w-4" />

@@ -16,7 +16,7 @@ type Vista = 'oculto' | 'aviso' | 'panel';
 /**
  * Aviso de cookies (RGPD + LSSI art. 22.2).
  *
- * · Tarjeta compacta abajo, no una franja a todo lo ancho.
+ * · Barra compacta abajo (unos 90 px en móvil): el hero se sigue viendo entero.
  * · "Aceptar" y "Rechazar" tienen el mismo tamaño y el mismo peso visual:
  *   rechazar cuesta exactamente lo mismo que aceptar, un clic.
  * · Publica su alto en --consent-h para que el hero y la barra móvil se aparten
@@ -151,40 +151,40 @@ export function CookieBanner() {
   }
 
   /* ------------------------------ Aviso ------------------------------ */
+  /* Barra compacta pegada abajo: unos 90 px en un móvil de 360 px y una sola
+     línea en escritorio, para que el hero se siga viendo entero.
+     "Aceptar" y "Rechazar" llevan exactamente las mismas clases: mismo tamaño,
+     mismo color, mismo peso (criterio de la AEPD). "Configurar" va como enlace. */
+  const boton =
+    'h-9 rounded-full border border-white/15 bg-white/[0.08] px-4 text-[0.8125rem] font-medium text-ink transition-colors duration-300 hover:bg-white/[0.14]';
   return (
-    <div ref={tarjetaRef} className="safe-b fixed inset-x-0 bottom-0 z-[55] px-3 pb-3">
-      <div
-        className={`radius mx-auto max-w-2xl border border-hair bg-surface/95 p-4 backdrop-blur-xl transition-[opacity,transform] duration-500 ease-brand sm:flex sm:items-center sm:gap-6 sm:p-5 ${
-          entrado ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
-        }`}
-      >
-        <p className="text-[0.8125rem] leading-snug text-muted sm:flex-1">
-          Cookies propias para que la web funcione y, si nos dejas, de Meta para medir anuncios.{' '}
+    <div
+      ref={tarjetaRef}
+      role="region"
+      aria-label="Aviso de cookies"
+      className={`safe-b fixed inset-x-0 bottom-0 z-[55] border-t border-hair bg-surface/95 backdrop-blur-xl transition-[opacity,transform] duration-500 ease-brand ${
+        entrado ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
+      }`}
+    >
+      <div className="mx-auto flex max-w-5xl flex-col gap-1 px-3 py-2 sm:flex-row sm:items-center sm:gap-5 sm:px-5 sm:py-2.5">
+        <p className="text-[0.75rem] leading-4 text-muted sm:flex-1">
+          Cookies propias y, si aceptas, de Meta para medir anuncios.{' '}
           <Link href="/politica-cookies" className="text-ink underline decoration-white/25 underline-offset-2">
-            Ver la política de cookies
+            Más info
           </Link>
-          .
         </p>
 
-        <div className="mt-3 grid grid-cols-3 gap-2 sm:mt-0 sm:shrink-0">
-          <button
-            type="button"
-            onClick={() => decidir(true)}
-            className="h-11 rounded-full bg-accent px-3 text-[0.8125rem] font-medium text-white sm:px-5"
-          >
+        <div className="flex items-center gap-2 sm:shrink-0">
+          <button type="button" onClick={() => decidir(true)} className={`${boton} flex-1 sm:flex-none`}>
             Aceptar
           </button>
-          <button
-            type="button"
-            onClick={() => decidir(false)}
-            className="h-11 rounded-full border border-hair px-3 text-[0.8125rem] font-medium text-ink sm:px-5"
-          >
+          <button type="button" onClick={() => decidir(false)} className={`${boton} flex-1 sm:flex-none`}>
             Rechazar
           </button>
           <button
             type="button"
             onClick={() => setVista('panel')}
-            className="h-11 rounded-full px-3 text-[0.8125rem] text-muted transition-colors duration-300 hover:text-ink sm:px-4"
+            className="h-9 shrink-0 px-2 text-[0.75rem] text-muted underline decoration-white/20 underline-offset-2 transition-colors duration-300 hover:text-ink"
           >
             Configurar
           </button>
