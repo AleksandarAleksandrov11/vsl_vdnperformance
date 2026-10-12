@@ -119,7 +119,9 @@ export function Hero() {
           <BotonPrincipal href={`#${FORM_ID}`} className="w-full sm:w-auto">
             Calcular mi coche
           </BotonPrincipal>
-          <EnlaceWhatsapp className="text-[0.9375rem] text-muted underline decoration-white/20 underline-offset-[6px] transition-colors duration-300 hover:text-ink">
+          {/* -my compensa el py: el área táctil llega a 45 px en móvil y el enlace
+              ocupa en la maquetación lo mismo que antes. */}
+          <EnlaceWhatsapp className="-my-[11px] py-[11px] text-[0.9375rem] text-muted underline decoration-white/20 underline-offset-[6px] transition-colors duration-300 hover:text-ink sm:my-0 sm:py-0">
             Hablar por WhatsApp
           </EnlaceWhatsapp>
         </div>

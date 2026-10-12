@@ -25,6 +25,7 @@ export function Cifras() {
                   prefijo={c.prefijo}
                   sufijo={c.sufijo}
                   decimales={c.decimales ?? 0}
+                  animar={c.animar ?? true}
                 />
               </p>
               <p className="mt-2 text-[0.8125rem] text-muted">{c.pie}</p>

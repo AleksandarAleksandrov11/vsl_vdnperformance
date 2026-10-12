@@ -1,6 +1,15 @@
 # www.vdnperformance.com es una landing sólo para anuncios de Meta Ads.
-# No debe indexarse ni competir en Google con vdnperformance.es.
+# No debe indexarse ni competir en Google con vdnperformance.es: la meta
+# noindex de cada página se encarga de eso. Google, Bing y Facebook pueden
+# rastrearla para ver esa noindex y para generar la vista previa del enlace.
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
 User-agent: *
 Disallow: /
-
-Sitemap: https://www.vdnperformance.com/sitemap.xml

@@ -10,13 +10,21 @@ import type { ImageKey } from './images.generated';
 
 /* --- 2. Cifras ----------------------------------------------------------- */
 
-export type Cifra = { valor: number; prefijo?: string; sufijo: string; pie: string; decimales?: number };
+export type Cifra = {
+  valor: number;
+  prefijo?: string;
+  sufijo: string;
+  pie: string;
+  decimales?: number;
+  /** false: se enseña directamente el valor final, sin contar desde 0. */
+  animar?: boolean;
+};
 
 export const CIFRAS: Cifra[] = [
   { valor: 30, prefijo: '+', sufijo: '%', pie: 'Potencia media' },
   { valor: 100, prefijo: '+', sufijo: '', pie: 'Coches reprogramados' },
-  { valor: 15, sufijo: ' días', pie: 'Garantía electrónica' },
-  { valor: 5, sufijo: ' ★', pie: 'En Google', decimales: 1 },
+  { valor: 15, sufijo: ' días', pie: 'Garantía electrónica', animar: false },
+  { valor: 5, sufijo: ' ★', pie: 'En Google', decimales: 1, animar: false },
 ];
 
 /* --- 3. Stages ----------------------------------------------------------- */
