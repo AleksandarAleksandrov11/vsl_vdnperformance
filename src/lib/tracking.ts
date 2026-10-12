@@ -78,6 +78,9 @@ function injectPixel(): void {
   script.src = 'https://connect.facebook.net/en_US/fbevents.js';
   document.head.appendChild(script);
 
+  /* Sin autoConfig, el píxel no mide clics ni datos de la página por su cuenta:
+     sólo los eventos que se mandan desde aquí. Tiene que ir antes del init. */
+  window.fbq?.('set', 'autoConfig', false, META_PIXEL_ID);
   window.fbq?.('init', META_PIXEL_ID);
 }
 

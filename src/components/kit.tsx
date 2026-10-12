@@ -265,15 +265,21 @@ export function Contador({
   sufijo = '',
   decimales = 0,
   className = '',
+  animar = true,
 }: {
   to: number;
   prefijo?: string;
   sufijo?: string;
   decimales?: number;
   className?: string;
+  /** false: valor final directamente, sin animación. */
+  animar?: boolean;
 }) {
-  const [ref, visible] = useInViewOnce<HTMLSpanElement>({ threshold: 0.5 });
-  const valor = useCountUp(to, visible);
+  /* Mismo umbral que el Reveal que lo envuelve: el contador vuelve a 0 y
+     arranca en el mismo fotograma en que el bloque empieza a aparecer (aún
+     transparente), así que nunca se ve el salto del valor final a 0. */
+  const [ref, visible] = useInViewOnce<HTMLSpanElement>({ threshold: 0.15 });
+  const valor = useCountUp(to, animar && visible);
   const texto = valor.toLocaleString('es-ES', {
     minimumFractionDigits: decimales,
     maximumFractionDigits: decimales,

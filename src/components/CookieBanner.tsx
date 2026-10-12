@@ -16,7 +16,7 @@ type Vista = 'oculto' | 'aviso' | 'panel';
 /**
  * Aviso de cookies (RGPD + LSSI art. 22.2).
  *
- * · Barra compacta abajo (unos 90 px en móvil): el hero se sigue viendo entero.
+ * · Barra compacta abajo (unos 97 px en móvil): el hero se sigue viendo entero.
  * · "Aceptar" y "Rechazar" tienen el mismo tamaño y el mismo peso visual:
  *   rechazar cuesta exactamente lo mismo que aceptar, un clic.
  * · Publica su alto en --consent-h para que el hero y la barra móvil se aparten
@@ -151,12 +151,13 @@ export function CookieBanner() {
   }
 
   /* ------------------------------ Aviso ------------------------------ */
-  /* Barra compacta pegada abajo: unos 90 px en un móvil de 360 px y una sola
+  /* Barra compacta pegada abajo: unos 97 px en un móvil de 360 px y una sola
      línea en escritorio, para que el hero se siga viendo entero.
      "Aceptar" y "Rechazar" llevan exactamente las mismas clases: mismo tamaño,
-     mismo color, mismo peso (criterio de la AEPD). "Configurar" va como enlace. */
+     mismo color, mismo peso (criterio de la AEPD). "Configurar" va como enlace.
+     En móvil miden 44 px de alto como mínimo: el tamaño de un dedo. */
   const boton =
-    'h-9 rounded-full border border-white/15 bg-white/[0.08] px-4 text-[0.8125rem] font-medium text-ink transition-colors duration-300 hover:bg-white/[0.14]';
+    'h-9 min-h-11 rounded-full border border-white/15 bg-white/[0.08] px-4 text-[0.8125rem] font-medium text-ink transition-colors duration-300 hover:bg-white/[0.14] sm:min-h-0';
   return (
     <div
       ref={tarjetaRef}

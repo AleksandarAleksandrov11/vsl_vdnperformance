@@ -84,7 +84,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             mirando si ya hay una decisión guardada. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var d=document.documentElement;try{var y=localStorage.getItem('${CONSENT_KEY}');d.style.setProperty('--consent-h',y?'0px':(innerWidth<380?'89px':innerWidth<640?'73px':'57px'))}catch(e){d.style.setProperty('--consent-h','89px')}})()`,
+            __html: `(function(){var d=document.documentElement;try{var y=localStorage.getItem('${CONSENT_KEY}');d.style.setProperty('--consent-h',y?'0px':(innerWidth<380?'97px':innerWidth<640?'81px':'57px'))}catch(e){d.style.setProperty('--consent-h','97px')}})()`,
           }}
         />
       </head>

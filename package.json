@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start -p 3000",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "assets": "node scripts/build-assets.mjs"
   },
@@ -21,6 +21,8 @@
     "@types/node": "^24.0.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.4",
     "lighthouse": "^13.4.1",
     "playwright": "^1.63.0",
     "sharp": "^0.34.4",

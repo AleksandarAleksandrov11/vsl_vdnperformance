@@ -53,9 +53,12 @@ export function useInViewOnce<T extends HTMLElement>(
  * Contador que sube de 0 a `to` cuando arranca.
  * Usa requestAnimationFrame y una curva easeOutExpo, que es la que hace que un
  * número "frene" al final en vez de pararse en seco.
+ *
+ * Hasta que arranca devuelve `to`: el HTML del servidor lleva ya el valor final
+ * (sin JS, o para quien lea el HTML, nunca sale un 0).
  */
 export function useCountUp(to: number, run: boolean, duracionMs = 1400): number {
-  const [valor, setValor] = useState(0);
+  const [valor, setValor] = useState(to);
   const reduced = useReducedMotion();
 
   useEffect(() => {
