@@ -137,8 +137,9 @@ export async function enviarLead(lead: Lead, extra: ExtraMedicion): Promise<Resu
   };
 
   /* Con mala cobertura una petición se puede quedar colgada minutos. El Apps
-     Script tarda de 2 a 8 segundos; a los 25 se da por perdida y se avisa. */
-  const corte = AbortSignal.timeout ? AbortSignal.timeout(25000) : undefined;
+     Script suele tardar de 2 a 8 segundos, pero el servidor le espera hasta
+     30; aquí se esperan 35 para no cortar antes que él. */
+  const corte = AbortSignal.timeout ? AbortSignal.timeout(35000) : undefined;
 
   try {
     const r = await fetch('/api/lead/', {

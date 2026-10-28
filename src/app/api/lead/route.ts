@@ -4,8 +4,9 @@
  * 1. Lo reenvía al Apps Script de la hoja y lee su respuesta. Desde el
  *    navegador eso no se puede (la respuesta de Google llega opaca); desde
  *    aquí sí, así que la web sabe de verdad si el lead se guardó.
- * 2. Responde { ok: true } sólo si la hoja contestó { ok: true }. Es lo que
- *    decide si el navegador dispara el Lead del píxel.
+ * 2. Responde { ok: true } si la hoja lo guardó (ver guardarEnHoja: también
+ *    con un 2xx que no es JSON). Es lo que decide si el navegador dispara el
+ *    Lead del píxel.
  * 3. Con la respuesta ya enviada (after), manda el mismo Lead, con el mismo
  *    event_id, a la API de Conversiones. Para todos los leads, con o sin
  *    consentimiento de cookies. Si Meta falla, el lead ya está guardado.
@@ -21,6 +22,11 @@ import { SHEETS_WEBHOOK_URL } from '@/lib/config';
 import { enviarLeadCapi } from '@/lib/capi';
 
 export const runtime = 'nodejs';
+/* El Apps Script puede tardar (arranque en frío y su bloqueo de escritura):
+   se le esperan hasta 30 s, y la función necesita margen por encima de eso. */
+export const maxDuration = 60;
+
+const ESPERA_HOJA_MS = 30_000;
 
 /** Campos que se reenvían a la hoja, con su largo máximo. En este orden. */
 const CAMPOS = {
@@ -45,6 +51,55 @@ const responder = (ok: boolean, status = 200) => Response.json({ ok }, { status 
 function ipDe(req: NextRequest): string | undefined {
   const xff = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
   return xff || req.headers.get('x-real-ip')?.trim() || undefined;
+}
+
+/**
+ * Reenvía el lead al Apps Script y dice si se guardó.
+ *
+ *  · 2xx con {"ok":true} ........ guardado.
+ *  · 2xx con algo que no es JSON  guardado igualmente: el Apps Script a veces
+ *                                 contesta una página en vez de su JSON y la
+ *                                 fila ya está escrita. Queda en el log.
+ *  · 2xx con JSON sin ok:true ... no guardado.
+ *  · otro estado, red o 30 s .... no guardado.
+ *
+ * Cada caso raro queda en los logs de Vercel con su motivo, sin datos
+ * personales: ni el nombre ni el teléfono, sólo qué contestó Google.
+ */
+async function guardarEnHoja(datos: URLSearchParams): Promise<boolean> {
+  let r: Response;
+  try {
+    r = await fetch(process.env.SHEETS_WEBHOOK_URL || SHEETS_WEBHOOK_URL, {
+      method: 'POST',
+      body: datos,
+      redirect: 'follow',
+      signal: AbortSignal.timeout(ESPERA_HOJA_MS),
+    });
+  } catch (e) {
+    const nombre = e instanceof Error ? e.name : '';
+    const motivo =
+      nombre === 'TimeoutError' || nombre === 'AbortError'
+        ? `tiempo agotado (${ESPERA_HOJA_MS / 1000} s)`
+        : `error de red: ${e instanceof Error ? e.message : String(e)}`;
+    console.error('Hoja: no guardado,', motivo);
+    return false;
+  }
+
+  const respuesta = await r.text().catch(() => '');
+  if (!r.ok) {
+    console.error(`Hoja: no guardado, estado HTTP ${r.status}:`, respuesta.slice(0, 200));
+    return false;
+  }
+  let json: unknown;
+  try {
+    json = JSON.parse(respuesta);
+  } catch {
+    console.error(`Hoja: estado ${r.status} con respuesta que no es JSON; se da por guardado:`, respuesta.slice(0, 200));
+    return true;
+  }
+  if ((json as { ok?: unknown } | null)?.ok === true) return true;
+  console.error(`Hoja: no guardado, JSON sin ok:true (estado ${r.status}):`, respuesta.slice(0, 200));
+  return false;
 }
 
 export async function POST(req: NextRequest) {
@@ -76,19 +131,7 @@ export async function POST(req: NextRequest) {
      (la potencia con el nombre que lee el Apps Script publicado). */
   const datos = new URLSearchParams({ ...lead, objetivo: lead.potencia, website: '' });
 
-  let guardado = false;
-  try {
-    const r = await fetch(process.env.SHEETS_WEBHOOK_URL || SHEETS_WEBHOOK_URL, {
-      method: 'POST',
-      body: datos,
-      redirect: 'follow',
-      signal: AbortSignal.timeout(20000),
-    });
-    const respuesta = await r.text();
-    guardado = r.ok && JSON.parse(respuesta)?.ok === true;
-  } catch (e) {
-    console.error('Hoja', e instanceof Error ? e.message : e);
-  }
+  const guardado = await guardarEnHoja(datos);
   if (!guardado) return responder(false, 502);
 
   const url = texto('event_source_url', 300);
