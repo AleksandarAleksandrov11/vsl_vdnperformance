@@ -1,13 +1,19 @@
 /**
- * POST /api/lead/ — recibe el presupuesto del formulario.
+ * POST /api/lead/: recibe el presupuesto del formulario.
  *
  * 1. Lo reenvía al Apps Script de la hoja y lee su respuesta. Desde el
  *    navegador eso no se puede (la respuesta de Google llega opaca); desde
  *    aquí sí, así que la web sabe de verdad si el lead se guardó.
  * 2. Responde { ok: true } sólo si la hoja contestó { ok: true }. Es lo que
  *    decide si el navegador dispara el Lead del píxel.
- * 3. Con la respuesta ya enviada, y sólo si hubo consentimiento de marketing,
- *    manda el mismo Lead (mismo event_id) a la API de Conversiones.
+ * 3. Con la respuesta ya enviada (after), manda el mismo Lead, con el mismo
+ *    event_id, a la API de Conversiones. Para todos los leads, con o sin
+ *    consentimiento de cookies. Si Meta falla, el lead ya está guardado.
+ *
+ * A la hoja va exactamente el mismo cuerpo de siempre (CAMPOS + objetivo +
+ * website). Lo que el navegador manda para la CAPI (fbclid, fbc, fbp,
+ * event_source_url, consent_marketing) se usa aquí y no se reenvía nunca.
+ * tests/fixtures/payload-hoja.json fija ese cuerpo byte a byte.
  */
 
 import { after, type NextRequest } from 'next/server';
@@ -16,7 +22,7 @@ import { enviarLeadCapi } from '@/lib/capi';
 
 export const runtime = 'nodejs';
 
-/** Campos que se reenvían a la hoja, con su largo máximo. */
+/** Campos que se reenvían a la hoja, con su largo máximo. En este orden. */
 const CAMPOS = {
   nombre: 80,
   telefono: 20,
@@ -30,7 +36,16 @@ const CAMPOS = {
   utm_content: 160,
 } as const;
 
+/** 9 dígitos (España, como siempre) o "+" y el número entero con su prefijo. */
+const TELEFONO = /^(\d{9}|\+\d{7,18})$/;
+
 const responder = (ok: boolean, status = 200) => Response.json({ ok }, { status });
+
+/** IP de quien envía: la primera de x-forwarded-for (la que pone Vercel), o x-real-ip. */
+function ipDe(req: NextRequest): string | undefined {
+  const xff = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+  return xff || req.headers.get('x-real-ip')?.trim() || undefined;
+}
 
 export async function POST(req: NextRequest) {
   let cuerpo: Record<string, unknown>;
@@ -53,12 +68,12 @@ export async function POST(req: NextRequest) {
     keyof typeof CAMPOS,
     string
   >;
-  if (lead.nombre.length < 2 || !/^\d{9}$/.test(lead.telefono) || !lead.event_id) {
+  if (lead.nombre.length < 2 || !TELEFONO.test(lead.telefono) || !lead.event_id) {
     return responder(false, 400);
   }
 
   /* Los mismos parámetros que mandaba el navegador antes, incluido `objetivo`
-     (la potencia con el nombre que lee el Apps Script antiguo). */
+     (la potencia con el nombre que lee el Apps Script publicado). */
   const datos = new URLSearchParams({ ...lead, objetivo: lead.potencia, website: '' });
 
   let guardado = false;
@@ -76,20 +91,22 @@ export async function POST(req: NextRequest) {
   }
   if (!guardado) return responder(false, 502);
 
-  if (cuerpo.marketing === true) {
-    const url = texto('url', 300);
-    after(() =>
-      enviarLeadCapi({
-        eventId: lead.event_id,
-        nombre: lead.nombre,
-        telefono: lead.telefono,
-        url: /^https?:\/\//.test(url) ? url : `${req.nextUrl.origin}/`,
-        userAgent: req.headers.get('user-agent') ?? '',
-        fbp: req.cookies.get('_fbp')?.value || texto('fbp', 120) || undefined,
-        fbc: req.cookies.get('_fbc')?.value || texto('fbc', 300) || undefined,
-      }),
-    );
-  }
+  const url = texto('event_source_url', 300);
+  const ts = Number(texto('fbclid_ts', 16));
+  after(() =>
+    enviarLeadCapi({
+      eventId: lead.event_id,
+      nombre: lead.nombre,
+      telefono: lead.telefono,
+      url: /^https?:\/\//.test(url) ? url : `${req.nextUrl.origin}/`,
+      userAgent: req.headers.get('user-agent') ?? '',
+      ip: ipDe(req),
+      fbp: req.cookies.get('_fbp')?.value || texto('fbp', 120) || undefined,
+      fbc: req.cookies.get('_fbc')?.value || texto('fbc', 300) || undefined,
+      fbclid: texto('fbclid', 500) || undefined,
+      fbclidTs: Number.isFinite(ts) && ts > 0 ? ts : undefined,
+    }),
+  );
 
   return responder(true);
 }

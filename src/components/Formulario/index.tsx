@@ -2,23 +2,34 @@
 
 import { AnimatePresence, LazyMotion, m } from 'framer-motion';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
-import { FORM_ID, waLink } from '@/lib/config';
+import { FORM_ID, SITE, waLink } from '@/lib/config';
 import { cargarAnimaciones, useReducedMotion } from '@/lib/hooks';
-import { capturarUtm, enviarLead } from '@/lib/leads';
-import { datosMedicion, nuevoEventId, trackFormStart, trackLead } from '@/lib/tracking';
+import { enviarLead } from '@/lib/leads';
+import { PREFIJOS, PREFIJO_POR_DEFECTO, paisDeNumero } from '@/lib/prefijos';
+import {
+  datosMedicion,
+  nuevoEventId,
+  trackContact,
+  trackFormError,
+  trackFormStart,
+  trackFormStep,
+  trackLead,
+} from '@/lib/tracking';
 import { Eyebrow, Flecha, IconoWhatsapp } from '../kit';
 import {
   CV_MAX,
   CV_MIN,
   NO_LO_SABE,
-  normalizaTelefono,
+  PREFIJO_OTRO,
+  prefijoEfectivo,
+  separarPrefijo,
+  telefonoParaHoja,
   validaAnio,
   validaModelo,
   validaMotor,
   validaNombre,
   validaPotencia,
-  validaTelefono,
+  validaTelefonoCon,
 } from './validacion';
 
 const TOTAL = 5;
@@ -34,39 +45,70 @@ type Datos = {
 
 const VACIO: Datos = { modelo: '', anio: '', motor: '', potencia: '', nombre: '', telefono: '' };
 
+/** Campo que se valida en cada paso, para el evento FormError. */
+const CAMPO_DEL_PASO = ['modelo', 'anio', 'motor', 'potencia', 'nombre'] as const;
+
+/* ------------------------------------------------------------------ *
+ * Progreso guardado
+ * Si la persona abre una legal, recarga o el navegador de Instagram
+ * restaura la página, el formulario vuelve donde estaba.
+ * ------------------------------------------------------------------ */
+
+const PROGRESO_KEY = 'vdn.form.v1';
+
+type Progreso = { paso: number; datos: Datos; prefijo: string; prefijoOtro: string; eventId: string | null };
+
+function leerProgreso(): Progreso | null {
+  try {
+    const p = JSON.parse(window.sessionStorage.getItem(PROGRESO_KEY) ?? 'null') as Progreso | null;
+    if (!p || typeof p.paso !== 'number' || typeof p.datos !== 'object') return null;
+    return { ...p, paso: Math.min(Math.max(0, p.paso), TOTAL - 1), datos: { ...VACIO, ...p.datos } };
+  } catch {
+    return null;
+  }
+}
+
+function guardarProgreso(p: Progreso | null): void {
+  try {
+    if (p) window.sessionStorage.setItem(PROGRESO_KEY, JSON.stringify(p));
+    else window.sessionStorage.removeItem(PROGRESO_KEY);
+  } catch {
+    /* sin sessionStorage: el progreso vive sólo en esta página */
+  }
+}
+
+/** Lo contestado, sin lo que la persona no sabía ("No lo sé"). */
+const dato = (v: string) => (v && v !== NO_LO_SABE ? v.trim() : '');
+
 /**
- * Mensaje de WhatsApp del botón de la pantalla final, ya relleno con lo que la
- * persona acaba de contestar: no tiene que volver a escribirlo.
- *
- * Una línea por dato y sin emojis, para que en el taller se lea de un vistazo.
- * Lo que la persona no sabía ("No lo sé") no aparece: una línea vacía o un
- * "No lo sabe" sólo ensucian el mensaje.
+ * Mensaje de WhatsApp de la pantalla de gracias: resume sólo lo que pregunta
+ * el formulario, en una línea y sin emojis. Lo que la persona no sabía no sale.
  */
 function mensajeWhatsapp(d: Datos): string {
-  const dato = (v: string) => (v && v !== NO_LO_SABE ? v.trim() : '');
   const potencia = dato(d.potencia);
-  const lineas = [
-    ['Marca y modelo', dato(d.modelo)],
-    ['Año', dato(d.anio)],
-    ['Motor', dato(d.motor)],
-    ['Potencia de serie', potencia && `${potencia} CV`],
-  ]
-    .filter(([, valor]) => valor)
-    .map(([nombre, valor]) => `${nombre}: ${valor}`);
-
-  return [
-    `Hola, soy ${d.nombre.trim()}. Estos son los datos de mi coche:`,
-    '',
-    ...lineas,
-    '',
-    '¿Cuánto le puedo sacar con una buena repro?',
-  ].join('\n');
+  const coche = [dato(d.modelo), dato(d.anio), dato(d.motor), potencia && `${potencia} CV`].filter(Boolean);
+  return `Hola, soy ${d.nombre.trim()}. Mi coche: ${coche.join(', ')}.`;
 }
+
+/**
+ * Mensaje de la pantalla de error de envío: todos los datos del formulario,
+ * para que el presupuesto llegue aunque la web no haya podido guardarlo.
+ */
+function mensajeError(d: Datos, telefono: string): string {
+  return [mensajeWhatsapp(d), `Mi teléfono: ${telefono}.`].join('\n');
+}
+
+/** Móvil o tableta táctil: allí WhatsApp se abre solo al enviar. */
+const esTactil = () =>
+  typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
 
 export function Formulario() {
   const [paso, setPaso] = useState(0);
   const [datos, setDatos] = useState<Datos>(VACIO);
+  const [prefijo, setPrefijo] = useState(PREFIJO_POR_DEFECTO);
+  const [prefijoOtro, setPrefijoOtro] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [errorEnvio, setErrorEnvio] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [hecho, setHecho] = useState(false);
   const [direccion, setDireccion] = useState<1 | -1>(1);
@@ -75,14 +117,35 @@ export function Formulario() {
   const honeypot = useRef('');
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const formStartEnviado = useRef(false);
+  /** Candado del envío: un doble Enter o doble toque no manda dos POST. */
+  const enviandoRef = useRef(false);
+  /** event_id del presupuesto: nace al empezar y se reutiliza en un reintento. */
+  const eventIdRef = useRef<string | null>(null);
+  const restaurado = useRef(false);
   const reduced = useReducedMotion();
 
-  /* Los UTM se guardan al entrar: si la persona se va a leer la política de
-     privacidad y vuelve, el origen del anuncio sigue ahí. */
+  /* Recupera el progreso guardado al volver a la página. Va en un rAF (fuera
+     del cuerpo del efecto) para no encadenar renders durante la hidratación. */
   useEffect(() => {
-    capturarUtm();
+    const raf = requestAnimationFrame(() => {
+      restaurado.current = true;
+      const p = leerProgreso();
+      if (!p) return;
+      eventIdRef.current = p.eventId;
+      setDatos(p.datos);
+      setPaso(p.paso);
+      setPrefijo(p.prefijo || PREFIJO_POR_DEFECTO);
+      setPrefijoOtro(p.prefijoOtro || '');
+    });
+    return () => cancelAnimationFrame(raf);
   }, []);
+
+  /* Y lo guarda en cada cambio. Al terminar se borra. */
+  useEffect(() => {
+    if (!restaurado.current) return;
+    if (hecho) guardarProgreso(null);
+    else guardarProgreso({ paso, datos, prefijo, prefijoOtro, eventId: eventIdRef.current });
+  }, [paso, datos, prefijo, prefijoOtro, hecho]);
 
   /**
    * Foco en el campo de cada pantalla, pero sólo después de que la persona haya
@@ -107,8 +170,9 @@ export function Formulario() {
     const onResize = () => {
       clearTimeout(t);
       t = setTimeout(() => {
-        if (document.activeElement === inputRef.current) {
-          inputRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        const activo = document.activeElement;
+        if (activo instanceof HTMLElement && panelRef.current?.contains(activo) && activo.matches('input, select')) {
+          activo.scrollIntoView({ block: 'center', behavior: 'smooth' });
         }
       }, 120);
     };
@@ -125,8 +189,12 @@ export function Formulario() {
     setPaso(0);
     setDireccion(1);
     setError(null);
+    setErrorEnvio(false);
     setHecho(false);
+    setPrefijo(PREFIJO_POR_DEFECTO);
+    setPrefijoOtro('');
     honeypot.current = '';
+    eventIdRef.current = null;
     // FormStart marca el arranque del formulario en la sesión, no de cada
     // envío: no se reinicia, o se contaría dos veces la misma visita.
   }, []);
@@ -134,7 +202,23 @@ export function Formulario() {
   const set = useCallback((k: keyof Datos, v: string) => {
     setDatos((d) => ({ ...d, [k]: v }));
     setError(null);
+    setErrorEnvio(false);
   }, []);
+
+  /** Teléfono: si se pega con "+" o "00", el prefijo va al selector y no se duplica. */
+  const setTelefono = useCallback(
+    (v: string) => {
+      const separado = separarPrefijo(
+        v,
+        PREFIJOS.map((p) => p.codigo),
+      );
+      if (separado) {
+        setPrefijo(separado.prefijo);
+        set('telefono', separado.resto);
+      } else set('telefono', v);
+    },
+    [set],
+  );
 
   const avanzar = useCallback(() => {
     setDireccion(1);
@@ -147,6 +231,7 @@ export function Formulario() {
     setDireccion(-1);
     setInteractuado(true);
     setError(null);
+    setErrorEnvio(false);
     setPaso((p) => {
       const destino = Math.max(p - 1, 0);
       // Si esa pregunta se saltó con "No lo sé", se deja en blanco: el campo
@@ -157,53 +242,21 @@ export function Formulario() {
     });
   }, []);
 
-  /** Valida la pantalla actual y, si está bien, pasa a la siguiente. */
-  const siguiente = useCallback(() => {
-    const fallo = [
-      () => validaModelo(datos.modelo),
-      () => validaAnio(datos.anio),
-      () => validaMotor(datos.motor),
-      () => validaPotencia(datos.potencia),
-      () => validaNombre(datos.nombre) ?? validaTelefono(datos.telefono),
-    ][paso]();
-
-    if (fallo) {
-      setError(fallo);
-      return;
-    }
-
-    // El primer dato contestado marca el arranque real del formulario.
-    if (paso === 0 && !formStartEnviado.current) {
-      formStartEnviado.current = true;
-      trackFormStart();
-    }
-
-    if (paso === TOTAL - 1) void enviar();
-    else avanzar();
-  }, [datos, paso, avanzar]);
-
-  /** Salta la pregunta guardando "No lo sabe" (pasos 3 y 4). */
-  const noLoSe = useCallback(
-    (campo: 'motor' | 'potencia') => {
-      setDatos((d) => ({ ...d, [campo]: NO_LO_SABE }));
-      setError(null);
-      avanzar();
-    },
-    [avanzar],
-  );
-
-  async function enviar() {
-    if (enviando) return;
+  const enviar = useCallback(async () => {
+    if (enviandoRef.current) return;
+    enviandoRef.current = true;
     setEnviando(true);
+    setErrorEnvio(false);
 
-    const telefono = normalizaTelefono(datos.telefono) ?? datos.telefono;
-    const eventId = nuevoEventId();
+    const telefono = telefonoParaHoja(prefijo, prefijoOtro, datos.telefono);
+    const eventId = (eventIdRef.current ??= nuevoEventId());
 
     // Honeypot relleno: es un bot. Se le enseña la pantalla final y no se manda
     // nada ni se mide ninguna conversión.
     if (honeypot.current.trim()) {
       setHecho(true);
       setEnviando(false);
+      enviandoRef.current = false;
       return;
     }
 
@@ -221,20 +274,68 @@ export function Formulario() {
       datosMedicion(),
     );
 
-    /* Sin red, cortado o la hoja falló: se avisa y todo lo contestado sigue en
-       su sitio. Basta con volver a pulsar "Recibir mi precio". */
+    enviandoRef.current = false;
+    setEnviando(false);
+
+    /* Sin red, cortado o la hoja falló: se avisa, todo lo contestado sigue en
+       su sitio y se ofrece mandarlo por WhatsApp. No se mide Lead. */
     if (resultado === 'error') {
-      setError('No se ha podido enviar. Revisa la conexión y vuelve a pulsar «Recibir mi precio».');
-      setEnviando(false);
+      setError('No se ha podido enviar. Revisa la conexión y vuelve a pulsar «Enviar».');
+      setErrorEnvio(true);
       return;
     }
 
     // El Lead sólo se mide cuando la hoja confirma que lo guardó.
-    if (resultado === 'ok') trackLead(eventId);
-
+    if (resultado === 'ok') {
+      const ph = telefono.replace(/\D/g, '');
+      const internacional = ph.length === 9 ? `34${ph}` : ph;
+      trackLead(eventId, {
+        ph: internacional,
+        fn: datos.nombre.trim().split(/\s+/)[0]?.toLowerCase(),
+        country: paisDeNumero(internacional) ?? 'es',
+      });
+    }
     setHecho(true);
-    setEnviando(false);
-  }
+  }, [datos, prefijo, prefijoOtro]);
+
+  /** Valida la pantalla actual y, si está bien, pasa a la siguiente. */
+  const siguiente = useCallback(() => {
+    const fallo = [
+      () => validaModelo(datos.modelo),
+      () => validaAnio(datos.anio),
+      () => validaMotor(datos.motor),
+      () => validaPotencia(datos.potencia),
+      () => validaNombre(datos.nombre) ?? validaTelefonoCon(prefijo, prefijoOtro, datos.telefono),
+    ][paso]();
+
+    if (fallo) {
+      setError(fallo);
+      const campo = paso === 4 && !validaNombre(datos.nombre) ? 'telefono' : CAMPO_DEL_PASO[paso];
+      trackFormError(paso + 1, campo);
+      return;
+    }
+
+    // El primer dato contestado marca el arranque real del formulario.
+    if (paso === 0) {
+      eventIdRef.current ??= nuevoEventId();
+      trackFormStart();
+    }
+    trackFormStep(paso + 1);
+
+    if (paso === TOTAL - 1) void enviar();
+    else avanzar();
+  }, [datos, paso, prefijo, prefijoOtro, avanzar, enviar]);
+
+  /** Salta la pregunta guardando "No lo sabe" (pasos 3 y 4). */
+  const noLoSe = useCallback(
+    (campo: 'motor' | 'potencia') => {
+      setDatos((d) => ({ ...d, [campo]: NO_LO_SABE }));
+      setError(null);
+      trackFormStep(campo === 'motor' ? 3 : 4);
+      avanzar();
+    },
+    [avanzar],
+  );
 
   const variantes = {
     entra: (dir: number) => ({ opacity: 0, x: reduced ? 0 : dir * 40 }),
@@ -418,16 +519,19 @@ export function Formulario() {
                                 autoComplete="name"
                                 autoCapitalize="words"
                               />
-                              <Campo
-                                id="f-telefono"
-                                label="Tu teléfono"
+                              <CampoTelefono
+                                prefijo={prefijo}
+                                prefijoOtro={prefijoOtro}
+                                onPrefijo={(v) => {
+                                  setPrefijo(v);
+                                  setError(null);
+                                }}
+                                onPrefijoOtro={(v) => {
+                                  setPrefijoOtro(v.replace(/\D/g, '').slice(0, 4));
+                                  setError(null);
+                                }}
                                 value={datos.telefono}
-                                onChange={(v) => set('telefono', v)}
-                                placeholder="Teléfono"
-                                type="tel"
-                                inputMode="tel"
-                                autoComplete="tel"
-                                enterHint="send"
+                                onChange={setTelefono}
                               />
                             </div>
 
@@ -461,6 +565,21 @@ export function Formulario() {
                       {error ?? ' '}
                     </p>
 
+                    {/* Si el envío falla, el presupuesto no se pierde: se puede
+                        reintentar o mandarlo por WhatsApp con todos los datos. */}
+                    {errorEnvio && (
+                      <a
+                        href={waLink(mensajeError(datos, telefonoParaHoja(prefijo, prefijoOtro, datos.telefono)))}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => trackContact('error-envio')}
+                        className="mt-2 mb-2 inline-flex h-14 w-full items-center justify-center gap-2 rounded-full border border-hair px-7 text-[0.9375rem] font-medium text-ink transition-colors duration-300 hover:border-white/30 sm:w-auto"
+                      >
+                        <IconoWhatsapp className="h-4 w-4" />
+                        Enviar por WhatsApp
+                      </a>
+                    )}
+
                     <button
                       type="submit"
                       disabled={enviando}
@@ -472,7 +591,11 @@ export function Formulario() {
                             <Spinner /> Enviando…
                           </>
                         ) : (
-                          'Recibir mi precio'
+                          /* En móvil WhatsApp se abre solo al enviar; en escritorio no. */
+                          <>
+                            <span className="pointer-coarse:hidden">Enviar</span>
+                            <span className="hidden pointer-coarse:inline">Enviar y abrir WhatsApp</span>
+                          </>
                         )
                       ) : (
                         <>
@@ -484,13 +607,15 @@ export function Formulario() {
                     {paso === TOTAL - 1 && (
                       <p className="mt-5 text-[0.75rem] text-muted">
                         Al enviar aceptas la{' '}
-                        <Link
-                          href="/politica-privacidad"
+                        <a
+                          href="/politica-privacidad/"
+                          target="_blank"
+                          rel="noopener"
                           className="underline decoration-white/20 underline-offset-2 hover:text-muted"
                         >
                           política de privacidad
-                        </Link>
-                        .
+                        </a>{' '}
+                        y que {SITE.name} te contacte sobre tu solicitud.
                       </p>
                     )}
                   </form>
@@ -622,6 +747,21 @@ function Spinner() {
 
 function PantallaFinal({ datos, onOtro }: { datos: Datos; onOtro: () => void }) {
   const nombre = datos.nombre.trim().split(' ')[0] || datos.nombre.trim();
+  const enlace = waLink(mensajeWhatsapp(datos));
+
+  /* En móvil, WhatsApp se abre solo a los 1,5 s: la persona escribe en
+     caliente. Con location.href y no window.open, que tras un await se bloquea
+     en iOS y en el navegador de Instagram. El Lead ya salió antes de mostrar
+     esta pantalla, así que entre los dos hay más de 800 ms. En escritorio no se
+     redirige: sólo queda el botón. */
+  useEffect(() => {
+    if (!esTactil()) return;
+    const t = setTimeout(() => {
+      trackContact('gracias-auto');
+      window.location.href = enlace;
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [enlace]);
 
   return (
     <div>
@@ -654,18 +794,20 @@ function PantallaFinal({ datos, onOtro }: { datos: Datos; onOtro: () => void }) 
 
       <h3 className="mt-8 text-[clamp(2.25rem,7.5vw,3.5rem)]">Listo, {nombre}.</h3>
       <p className="mt-5 max-w-[32ch] text-[1.0625rem] text-muted">
-        Te escribimos por WhatsApp en menos de 24 h.
+        <span className="hidden pointer-coarse:inline">Te abrimos WhatsApp para que nos escribas ya.</span>
+        <span className="pointer-coarse:hidden">Te escribimos por WhatsApp en menos de 24 h.</span>
       </p>
 
       <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
         <a
-          href={waLink(mensajeWhatsapp(datos))}
+          href={enlace}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => trackContact('gracias-boton')}
           className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-full border border-hair px-7 text-[0.9375rem] font-medium text-ink transition-colors duration-300 hover:border-white/30 sm:w-auto"
         >
           <IconoWhatsapp className="h-4 w-4" />
-          Escribir ahora por WhatsApp
+          Abrir WhatsApp
         </a>
 
         {/* Mucha gente tiene dos coches. Si no hay forma de volver a empezar,
@@ -677,6 +819,91 @@ function PantallaFinal({ datos, onOtro }: { datos: Datos; onOtro: () => void }) 
         >
           Pedir otro presupuesto
         </button>
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================================== */
+
+/**
+ * Teléfono con selector de prefijo delante. El selector es el nativo del
+ * sistema (en el móvil abre la rueda o la lista de siempre), invisible encima
+ * de un texto corto con el prefijo, para que ocupe poco.
+ */
+function CampoTelefono({
+  prefijo,
+  prefijoOtro,
+  onPrefijo,
+  onPrefijoOtro,
+  value,
+  onChange,
+}: {
+  prefijo: string;
+  prefijoOtro: string;
+  onPrefijo: (v: string) => void;
+  onPrefijoOtro: (v: string) => void;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const esOtro = prefijo === PREFIJO_OTRO;
+  const linea = 'border-b border-hair pb-4 text-[1.375rem] text-ink sm:text-[1.625rem]';
+  return (
+    <div className="flex items-end gap-3">
+      <div className={`relative shrink-0 ${linea} flex items-center gap-1.5`}>
+        <span aria-hidden>{esOtro ? 'Otro' : `+${prefijo}`}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden className="h-4 w-4 text-muted">
+          <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        <select
+          id="f-prefijo"
+          aria-label="Prefijo del teléfono"
+          value={prefijo}
+          onChange={(e) => onPrefijo(e.target.value)}
+          className="absolute inset-0 cursor-pointer opacity-0"
+        >
+          {PREFIJOS.map((p) => (
+            <option key={p.codigo} value={p.codigo}>
+              {p.pais} +{p.codigo}
+            </option>
+          ))}
+          <option value={PREFIJO_OTRO}>Otro prefijo</option>
+        </select>
+      </div>
+
+      {esOtro && (
+        <div className={`flex shrink-0 items-center ${linea}`}>
+          <span aria-hidden className="text-muted">
+            +
+          </span>
+          <label htmlFor="f-prefijo-otro" className="sr-only">
+            Prefijo de tu país
+          </label>
+          <input
+            id="f-prefijo-otro"
+            value={prefijoOtro}
+            onChange={(e) => onPrefijoOtro(e.target.value)}
+            inputMode="numeric"
+            maxLength={4}
+            autoComplete="tel-country-code"
+            placeholder="351"
+            className="w-[3.2em] bg-transparent text-ink outline-none placeholder:text-muted-dark"
+          />
+        </div>
+      )}
+
+      <div className="min-w-0 flex-1">
+        <Campo
+          id="f-telefono"
+          label={`Tu teléfono, sin el prefijo +${prefijoEfectivo(prefijo, prefijoOtro) || ''}`}
+          value={value}
+          onChange={onChange}
+          placeholder="Teléfono"
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel-national"
+          enterHint="send"
+        />
       </div>
     </div>
   );

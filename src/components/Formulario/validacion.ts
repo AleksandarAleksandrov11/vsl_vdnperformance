@@ -46,3 +46,54 @@ export function normalizaTelefono(v: string): string | null {
 export function validaTelefono(v: string): string | null {
   return normalizaTelefono(v) ? null : 'Escribe un móvil español de 9 cifras.';
 }
+
+/* --- Teléfono con prefijo de país ---------------------------------------- */
+
+/** Valor del selector para escribir el prefijo a mano. */
+export const PREFIJO_OTRO = 'otro';
+
+const soloDigitos = (v: string) => v.replace(/\D/g, '');
+
+/** Prefijo efectivo: el del selector o, con "Otro", el escrito a mano. */
+export function prefijoEfectivo(prefijo: string, prefijoOtro: string): string {
+  return prefijo === PREFIJO_OTRO ? soloDigitos(prefijoOtro) : prefijo;
+}
+
+/**
+ * Con +34, la validación de siempre (validaTelefono). Con otro prefijo, el
+ * número sin prefijo tiene que tener entre 6 y 14 cifras.
+ */
+export function validaTelefonoCon(prefijo: string, prefijoOtro: string, v: string): string | null {
+  const p = prefijoEfectivo(prefijo, prefijoOtro);
+  if (p === '34') return validaTelefono(v);
+  if (!/^\d{1,4}$/.test(p)) return 'Escribe el prefijo de tu país, por ejemplo 351.';
+  const n = soloDigitos(v).length;
+  return n >= 6 && n <= 14 ? null : 'Escribe el número sin el prefijo, de 6 a 14 cifras.';
+}
+
+/**
+ * Valor que va a la hoja, en el mismo campo `telefono` de siempre:
+ *  · con +34, los 9 dígitos, exactamente como hasta ahora;
+ *  · con otro prefijo, "+" + prefijo + número ("+351912345678"). El 0 inicial
+ *    de algunos números nacionales sobra en formato internacional y se quita
+ *    (salvo en Italia, donde forma parte del número).
+ */
+export function telefonoParaHoja(prefijo: string, prefijoOtro: string, v: string): string {
+  const p = prefijoEfectivo(prefijo, prefijoOtro);
+  if (p === '34') return normalizaTelefono(v) ?? v;
+  let n = soloDigitos(v);
+  if (p !== '39') n = n.replace(/^0+/, '');
+  return `+${p}${n}`;
+}
+
+/**
+ * Si se pega un número con "+" o "00" delante, separa el prefijo para no
+ * duplicarlo. Devuelve null si no empieza así o si el prefijo no es de la lista.
+ */
+export function separarPrefijo(v: string, prefijos: readonly string[]): { prefijo: string; resto: string } | null {
+  const m = v.trim().match(/^(?:\+|00)\s*(.*)$/);
+  if (!m) return null;
+  const d = soloDigitos(m[1]);
+  const prefijo = [...prefijos].sort((a, b) => b.length - a.length).find((p) => d.startsWith(p));
+  return prefijo ? { prefijo, resto: d.slice(prefijo.length) } : null;
+}
