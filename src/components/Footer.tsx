@@ -39,7 +39,10 @@ export function Footer() {
               Configurar cookies
             </button>
           </nav>
-          <p className="text-muted">© 2026 VDN Performance</p>
+          <p className="text-muted">
+            © 2026 VDN Performance · Web creada por{' '}
+            <a href="https://www.aasmarketing.com/" className={enlace}>AAS Marketing</a>
+          </p>
         </div>
       </div>
     </footer>

@@ -68,6 +68,12 @@ export function PaginaLegal({
               Cookies
             </Link>
           </nav>
+          <p className="mt-3">
+            Web creada por{' '}
+            <a href="https://www.aasmarketing.com/" className="transition-colors hover:text-ink">
+              AAS Marketing
+            </a>
+          </p>
         </div>
       </footer>
     </div>
