@@ -155,9 +155,10 @@ export function CookieBanner() {
      línea en escritorio, para que el hero se siga viendo entero.
      "Aceptar" y "Rechazar" llevan exactamente las mismas clases: mismo tamaño,
      mismo color, mismo peso (criterio de la AEPD). "Configurar" va como enlace.
-     En móvil miden 44 px de alto como mínimo: el tamaño de un dedo. */
+     En móvil miden 44 px de alto como mínimo (el tamaño de un dedo) y en
+     escritorio el mismo ancho fijo, para que ninguno destaque. */
   const boton =
-    'h-9 min-h-11 rounded-full border border-white/15 bg-white/[0.08] px-4 text-[0.8125rem] font-medium text-ink transition-colors duration-300 hover:bg-white/[0.14] sm:min-h-0';
+    'h-9 min-h-11 rounded-full border border-white/15 bg-white/[0.08] px-4 text-[0.8125rem] font-medium text-ink transition-colors duration-300 hover:bg-white/[0.14] sm:min-h-0 sm:w-28';
   return (
     <div
       ref={tarjetaRef}
