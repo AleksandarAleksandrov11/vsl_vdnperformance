@@ -1,18 +1,25 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
-/** true si el usuario ha pedido menos movimiento en su sistema. */
+const CONSULTA_MOVIMIENTO = '(prefers-reduced-motion: reduce)';
+
+function suscribirMovimiento(avisar: () => void): () => void {
+  const mq = window.matchMedia(CONSULTA_MOVIMIENTO);
+  mq.addEventListener('change', avisar);
+  return () => mq.removeEventListener('change', avisar);
+}
+
+/**
+ * true si el usuario ha pedido menos movimiento en su sistema. Es estado del
+ * navegador, así que se lee con useSyncExternalStore; en el servidor, false.
+ */
 export function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReduced(mq.matches);
-    const on = () => setReduced(mq.matches);
-    mq.addEventListener('change', on);
-    return () => mq.removeEventListener('change', on);
-  }, []);
-  return reduced;
+  return useSyncExternalStore(
+    suscribirMovimiento,
+    () => window.matchMedia(CONSULTA_MOVIMIENTO).matches,
+    () => false,
+  );
 }
 
 /**
@@ -30,8 +37,9 @@ export function useInViewOnce<T extends HTMLElement>(
     const el = ref.current;
     if (!el || visible) return;
     if (typeof IntersectionObserver === 'undefined') {
-      setVisible(true);
-      return;
+      // Navegadores sin IntersectionObserver: se enseña en el siguiente ciclo.
+      const t = setTimeout(() => setVisible(true), 0);
+      return () => clearTimeout(t);
     }
     const io = new IntersectionObserver(
       ([entry]) => {
@@ -62,11 +70,7 @@ export function useCountUp(to: number, run: boolean, duracionMs = 1400): number 
   const reduced = useReducedMotion();
 
   useEffect(() => {
-    if (!run) return;
-    if (reduced) {
-      setValor(to);
-      return;
-    }
+    if (!run || reduced) return;
     let raf = 0;
     const t0 = performance.now();
     const tick = (t: number) => {
@@ -79,7 +83,8 @@ export function useCountUp(to: number, run: boolean, duracionMs = 1400): number 
     return () => cancelAnimationFrame(raf);
   }, [to, run, duracionMs, reduced]);
 
-  return valor;
+  // Con "reducir movimiento", el valor final sin contar.
+  return reduced ? to : valor;
 }
 
 /** Posición de scroll, leída con rAF para no disparar layouts en cada evento. */

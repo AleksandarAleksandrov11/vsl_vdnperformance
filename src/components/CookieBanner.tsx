@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
 import { readConsent, writeConsent } from '@/lib/consent';
 
 const EVENTO_ABRIR = 'vdn:abrir-cookies';
@@ -30,13 +29,12 @@ export function CookieBanner() {
   const [entrado, setEntrado] = useState(false);
   const tarjetaRef = useRef<HTMLDivElement>(null);
 
+  /* Sin decisión guardada, el aviso aparece al poco de cargar. Con decisión,
+     no hace falta nada más: el panel lee la decisión guardada al abrirse. */
   useEffect(() => {
-    const guardado = readConsent();
-    if (!guardado) {
-      const t = setTimeout(() => setVista('aviso'), 250);
-      return () => clearTimeout(t);
-    }
-    setMarketing(guardado.marketing);
+    if (readConsent()) return;
+    const t = setTimeout(() => setVista('aviso'), 250);
+    return () => clearTimeout(t);
   }, []);
 
   useEffect(() => {
@@ -55,10 +53,7 @@ export function CookieBanner() {
      hidratada- se convertía en el elemento más grande y se llevaba el LCP a
      más de tres segundos. */
   useEffect(() => {
-    if (vista !== 'aviso') {
-      setEntrado(false);
-      return;
-    }
+    if (vista !== 'aviso') return;
     const raf = requestAnimationFrame(() => setEntrado(true));
     return () => cancelAnimationFrame(raf);
   }, [vista]);
@@ -141,9 +136,14 @@ export function CookieBanner() {
           </div>
 
           <p className="mt-5 text-[0.75rem]">
-            <Link href="/politica-cookies" className="text-muted underline underline-offset-2 hover:text-ink">
+            <a
+              href="/politica-cookies/"
+              target="_blank"
+              rel="noopener"
+              className="text-muted underline underline-offset-2 hover:text-ink"
+            >
               Política de cookies
-            </Link>
+            </a>
           </p>
         </div>
       </div>
@@ -170,9 +170,14 @@ export function CookieBanner() {
       <div className="mx-auto flex max-w-5xl flex-col gap-1 px-3 py-2 sm:flex-row sm:items-center sm:gap-5 sm:px-5 sm:py-2.5">
         <p className="text-[0.75rem] leading-4 text-muted sm:flex-1">
           Cookies propias y, si aceptas, de Meta para medir anuncios.{' '}
-          <Link href="/politica-cookies" className="text-ink underline decoration-white/25 underline-offset-2">
+          <a
+            href="/politica-cookies/"
+            target="_blank"
+            rel="noopener"
+            className="text-ink underline decoration-white/25 underline-offset-2"
+          >
             Más info
-          </Link>
+          </a>
         </p>
 
         <div className="flex items-center gap-2 sm:shrink-0">

@@ -1,13 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { FORM_ID, waLink } from '@/lib/config';
-import { IconoWhatsapp } from './kit';
+import { FORM_ID } from '@/lib/config';
 
 /**
  * Única pieza fija en móvil: aparece cuando el hero ya ha pasado y desaparece
- * con el formulario en pantalla. No hay botón flotante de WhatsApp aparte —
- * va aquí dentro, para no amontonar dos elementos en la misma esquina.
+ * con el formulario en pantalla. Un solo botón, "Calcular mi coche": nada que
+ * saque a la persona de la página antes de pedir su precio.
  *
  * Se mueve sólo con transform, nunca cambiando `bottom`: así el aviso de
  * cookies puede apartarla sin provocar un salto de contenido.
@@ -87,16 +86,6 @@ export function BarraMovil() {
           className="inline-flex h-14 flex-1 items-center justify-center rounded-full bg-accent px-6 text-[0.9375rem] font-medium text-white transition-transform duration-300 active:scale-[0.98]"
         >
           Calcular mi coche
-        </a>
-        <a
-          href={waLink()}
-          target="_blank"
-          rel="noopener noreferrer"
-          tabIndex={visible ? 0 : -1}
-          aria-label="Escríbenos por WhatsApp"
-          className="grid h-14 w-14 shrink-0 place-items-center rounded-full border border-hair text-ink transition-colors duration-300 active:scale-[0.98]"
-        >
-          <IconoWhatsapp />
         </a>
       </div>
     </div>

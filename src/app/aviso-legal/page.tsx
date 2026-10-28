@@ -35,8 +35,8 @@ export default function AvisoLegal() {
               'Domicilio del taller',
               `${SITE.taller.calle}, ${SITE.taller.cp} ${SITE.taller.ciudad} (${SITE.taller.provincia})`,
             ],
-            ['Correo electrónico', <a key="e" href={`mailto:${SITE.email}`}>{SITE.email}</a>],
-            ['Teléfono', <a key="t" href={`tel:+${SITE.phoneRaw}`}>{SITE.phoneDisplay}</a>],
+            ['Correo electrónico', SITE.email],
+            ['Teléfono', SITE.phoneDisplay],
             ['Sitio web', <a key="w" href={SITE.url}>{SITE.url}</a>],
             ['Actividad', 'Reprogramación de centralitas y preparación de vehículos'],
           ]}

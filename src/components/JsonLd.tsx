@@ -18,7 +18,7 @@ export function JsonLd() {
     legalName: SITE.legalName,
     description:
       'Reprogramación de centralitas (chiptuning) en Collado Villalba. Stage 1, 2 y 3 con 15 días de garantía.',
-    url: SITE.url,
+    url: `${SITE.url}/`,
     telephone: SITE.phoneIntl,
     email: SITE.email,
     image: `${SITE.url}/icon-512.png`,

@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter_Tight } from 'next/font/google';
+import localFont from 'next/font/local';
+import { scriptAnuncio } from '@/lib/ad-variants';
 import { SITE } from '@/lib/config';
 import { CONSENT_KEY } from '@/lib/consent';
+import { scriptCapturaVisita } from '@/lib/leads';
 import { ConsentProvider } from '@/components/ConsentProvider';
 import './globals.css';
 
@@ -10,9 +12,12 @@ import './globals.css';
  * pero más estrechas, que es lo que aguanta un titular de 96 px sin partirse en
  * cuatro líneas y sin parecer una plantilla.
  */
-const interTight = Inter_Tight({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
+const interTight = localFont({
+  /* El archivo va en el repo (src/app/fonts): el build no descarga nada y en
+     producción hay una petición menos a terceros. Es variable: 400, 500 y 600
+     salen del mismo archivo. */
+  src: './fonts/inter-tight-latin.woff2',
+  weight: '400 600',
   variable: '--font-inter-tight',
   display: 'swap',
 });
@@ -27,7 +32,7 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   applicationName: SITE.name,
   manifest: '/site.webmanifest',
-  alternates: { canonical: SITE.url },
+  alternates: { canonical: `${SITE.url}/` },
   /* La landing vive sólo para los anuncios: no debe competir en Google con
      vdnperformance.es, así que ninguna página se indexa. */
   robots: {
@@ -39,7 +44,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'es_ES',
-    url: SITE.url,
+    url: `${SITE.url}/`,
     siteName: SITE.name,
     title: TITLE,
     description: DESCRIPTION,
@@ -54,7 +59,8 @@ export const metadata: Metadata = {
     title: SITE.name,
     statusBarStyle: 'black-translucent',
   },
-  formatDetection: { telephone: true },
+  /* Sin esto, iOS convierte en enlace cualquier número de teléfono en texto. */
+  formatDetection: { telephone: false, email: false, address: false },
   other: {
     'msapplication-TileColor': '#050505',
   },
@@ -71,7 +77,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={interTight.variable}>
+    /* suppressHydrationWarning: los scripts del <head> ponen --consent-h,
+       data-campaign y data-ad en <html> antes de que React hidrate. */
+    <html lang="es" className={interTight.variable} suppressHydrationWarning>
       <head>
         {/* Precalentamos el dominio del píxel sólo como DNS: no descarga nada
             ni deja cookies, y si el usuario acepta, el script llega antes. */}
@@ -87,6 +95,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: `(function(){var d=document.documentElement;try{var y=localStorage.getItem('${CONSENT_KEY}');d.style.setProperty('--consent-h',y?'0px':(innerWidth<380?'97px':innerWidth<640?'81px':'57px'))}catch(e){d.style.setProperty('--consent-h','97px')}})()`,
           }}
         />
+        {/* Hero según el anuncio: marca <html> con data-campaign y data-ad
+            antes del primer pintado (ver src/lib/ad-variants.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: scriptAnuncio() }} />
+        {/* UTM y fbclid guardados en cuanto llega la visita (ver leads.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: scriptCapturaVisita() }} />
       </head>
       <body>
         <ConsentProvider>{children}</ConsentProvider>

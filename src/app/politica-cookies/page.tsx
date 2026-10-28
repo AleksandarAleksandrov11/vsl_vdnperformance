@@ -119,7 +119,7 @@ export default function PoliticaCookies() {
         <p>
           Para saber cómo tratamos tus datos personales, consulta la{' '}
           <a href="/politica-privacidad">Política de privacidad</a>. Si tienes cualquier duda,
-          escríbenos a <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
+          escríbenos a {SITE.email}.
         </p>
         <p>
           Esta política puede actualizarse si cambian las herramientas que usamos. La versión

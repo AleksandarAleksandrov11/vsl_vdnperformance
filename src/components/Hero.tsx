@@ -1,13 +1,21 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { FORM_ID, SITE } from '@/lib/config';
+import { POR_ANUNCIO, POR_CAMPANA, POR_DEFECTO, cssVariantes, type VarianteHero } from '@/lib/ad-variants';
+import { FORM_ID } from '@/lib/config';
 import { IMAGES } from '@/lib/images.generated';
 import { useReducedMotion } from '@/lib/hooks';
 import { Picture } from './Picture';
-import { BotonPrincipal, EnlaceWhatsapp, H1_CLASS, Titular } from './kit';
+import { BotonPrincipal, H1_CLASS, Titular } from './kit';
 
 const CONFIANZA = ['★ 5,0 en Google', '15 días de garantía electrónica', 'Listo en una mañana'];
+
+/** Todas las variantes del hero, con la clave que usa el CSS. */
+const VARIANTES: [string, VarianteHero][] = [
+  ['defecto', POR_DEFECTO],
+  ...Object.entries(POR_CAMPANA).map(([k, v]): [string, VarianteHero] => [`campana-${k}`, v]),
+  ...Object.entries(POR_ANUNCIO).map(([k, v]): [string, VarianteHero] => [`anuncio-${k}`, v]),
+];
 
 export function Hero() {
   const foto = useRef<HTMLDivElement>(null);
@@ -100,30 +108,33 @@ export function Hero() {
       </div>
 
       <div className="shell hero-lift relative z-10 pb-4">
-        <p className="eyebrow">
-          {SITE.taller.ciudad} · {SITE.taller.provincia}
-        </p>
+        {/* Una variante por anuncio, todas en el HTML. El script del <head>
+            marca <html> con la campaña y el CSS enseña la que toca antes del
+            primer pintado: sin parpadeo ni salto. Ver src/lib/ad-variants.ts. */}
+        <style dangerouslySetInnerHTML={{ __html: cssVariantes() }} />
+        {VARIANTES.map(([clave, v]) => (
+          <div key={clave} data-hero-v={clave}>
+            <p className="eyebrow">{v.antetitulo}</p>
 
-        <Titular
-          as="h1"
-          lineas={['Tu coche', 'puede dar más.']}
-          alCargar
-          className={`${H1_CLASS} mt-5 max-w-[14ch]`}
-        />
+            <Titular as="h1" lineas={v.titular} alCargar className={`${H1_CLASS} mt-5 max-w-[14ch]`} />
 
-        <p className="mt-5 max-w-[30ch] text-[1.0625rem] text-muted">
-          Reprogramación a medida. Stage 1 desde {SITE.precioStage1} €.
-        </p>
+            <p className="mt-5 max-w-[30ch] text-[1.0625rem] text-muted">{v.subtitulo}</p>
+          </div>
+        ))}
 
         <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6">
           <BotonPrincipal href={`#${FORM_ID}`} className="w-full sm:w-auto">
             Calcular mi coche
           </BotonPrincipal>
-          {/* -my compensa el py: el área táctil llega a 45 px en móvil y el enlace
-              ocupa en la maquetación lo mismo que antes. */}
-          <EnlaceWhatsapp className="-my-[11px] py-[11px] text-[0.9375rem] text-muted underline decoration-white/20 underline-offset-[6px] transition-colors duration-300 hover:text-ink sm:my-0 sm:py-0">
-            Hablar por WhatsApp
-          </EnlaceWhatsapp>
+          {/* Enlace secundario al mismo formulario: quien tiene dudas también
+              deja su WhatsApp, y no se va de la página. -my compensa el py: el
+              área táctil llega a 45 px en móvil sin mover la maquetación. */}
+          <a
+            href={`#${FORM_ID}`}
+            className="-my-[11px] py-[11px] text-[0.9375rem] text-muted underline decoration-white/20 underline-offset-[6px] transition-colors duration-300 hover:text-ink sm:my-0 sm:py-0"
+          >
+            ¿Tienes dudas? Déjanos tu WhatsApp y te las resolvemos
+          </a>
         </div>
 
         {/* En móvil van en columna y sin separadores: en una línea no caben los

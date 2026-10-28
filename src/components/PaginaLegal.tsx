@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Logo } from './Logo';
 import type { ReactNode } from 'react';
 import { SITE } from '@/lib/config';
 
@@ -25,7 +26,7 @@ export function PaginaLegal({
       <header className="border-b border-hair">
         <div className="shell flex h-16 items-center justify-between gap-4">
           <Link href="/" aria-label="Volver a la portada" className="flex items-center">
-            <img src="/logo-vdn.webp" alt="VDN Performance" width={400} height={97} className="h-5 w-auto" />
+            <Logo className="h-5 w-auto" />
           </Link>
           <Link
             href="/"

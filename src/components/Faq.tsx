@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { FORM_ID } from '@/lib/config';
 import { FAQ } from '@/lib/content';
 import { H2_CLASS, Section, Titular } from './kit';
 
@@ -48,6 +49,14 @@ export function Faq() {
             );
           })}
         </ul>
+
+        {/* Quien sigue con dudas tampoco sale de la página: va al formulario. */}
+        <a
+          href={`#${FORM_ID}`}
+          className="mt-10 inline-flex min-h-11 items-center text-[0.9375rem] text-muted underline decoration-white/20 underline-offset-[6px] transition-colors duration-300 hover:text-ink"
+        >
+          ¿Otra duda? Déjanos tu WhatsApp y te la resolvemos
+        </a>
       </div>
     </Section>
   );

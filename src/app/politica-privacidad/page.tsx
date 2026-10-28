@@ -30,8 +30,8 @@ export default function PoliticaPrivacidad() {
               'Domicilio del taller',
               `${SITE.taller.calle}, ${SITE.taller.cp} ${SITE.taller.ciudad} (${SITE.taller.provincia})`,
             ],
-            ['Correo electrónico', <a key="e" href={`mailto:${SITE.email}`}>{SITE.email}</a>],
-            ['Teléfono', <a key="t" href={`tel:+${SITE.phoneRaw}`}>{SITE.phoneDisplay}</a>],
+            ['Correo electrónico', SITE.email],
+            ['Teléfono', SITE.phoneDisplay],
           ]}
         />
         <p>
@@ -79,6 +79,9 @@ export default function PoliticaPrivacidad() {
             <strong>Medir la eficacia de nuestros anuncios</strong> en Instagram y Facebook, para
             saber qué campañas funcionan. Base legal: tu consentimiento (art. 6.1.a RGPD), que das
             al aceptar las cookies de marketing y que puedes retirar cuando quieras.
+            {/* TODO (legal): revisar Aleks. Esta base legal cubre el píxel; el envío
+                del formulario a Meta por la API de Conversiones (ver
+                destinatarios) necesita la suya. */}
           </li>
           <li>
             <strong>Cumplir obligaciones legales</strong> cuando llegues a ser cliente
@@ -126,6 +129,13 @@ export default function PoliticaPrivacidad() {
             anuncios mediante el píxel de Meta, <strong>sólo si aceptas</strong> las cookies de
             marketing. En este tratamiento Meta y el titular actúan como corresponsables respecto
             de la recogida y transmisión de los datos.
+            {/* TODO (legal): revisar Aleks. Párrafo neutro sobre la API de
+                Conversiones; falta indicar la base legal de este envío. */}
+            <br />
+            Además, cuando envías el formulario, los datos de tu solicitud (teléfono y nombre
+            cifrados, dirección IP, datos del navegador e identificadores del clic en el anuncio) se
+            comunican a Meta Platforms Ireland Limited mediante su API de Conversiones para medir los
+            anuncios.
           </li>
           <li>
             <strong>Vercel Inc.</strong> — alojamiento del sitio web.
@@ -171,7 +181,7 @@ export default function PoliticaPrivacidad() {
           </li>
         </ul>
         <p>
-          Para ejercerlos, escribe a <a href={`mailto:${SITE.email}`}>{SITE.email}</a> indicando
+          Para ejercerlos, escribe a {SITE.email} indicando
           qué derecho quieres ejercer. Podemos pedirte que acredites tu identidad. Te
           responderemos en el plazo de un mes.
         </p>
@@ -186,7 +196,7 @@ export default function PoliticaPrivacidad() {
             www.aepd.es
           </a>
           . Antes, si lo prefieres, puedes escribirnos a{' '}
-          <a href={`mailto:${SITE.email}`}>{SITE.email}</a> e intentamos resolverlo.
+          {SITE.email} e intentamos resolverlo.
         </p>
       </Apartado>
 

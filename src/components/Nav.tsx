@@ -1,5 +1,6 @@
 'use client';
 
+import { Logo } from './Logo';
 import { FORM_ID } from '@/lib/config';
 import { useScrollY } from '@/lib/hooks';
 
@@ -19,7 +20,7 @@ export function Nav() {
     >
       <div className="shell flex h-16 items-center justify-between gap-4">
         <a href="#top" aria-label="VDN Performance, ir al inicio" className="flex items-center">
-          <img src="/logo-vdn.webp" alt="VDN Performance" width={400} height={97} className="h-5 w-auto" />
+          <Logo className="h-5 w-auto" />
         </a>
 
         <a

@@ -42,29 +42,18 @@ export const SITE = {
 } as const;
 
 /**
- * Mensaje que sale ya escrito al abrir WhatsApp. Va con los campos en blanco a
- * propósito: la persona los rellena y el taller recibe de una todo lo que
- * necesita para dar precio, sin tener que pedirlo en tres mensajes.
+ * Enlace de WhatsApp al taller con el mensaje ya escrito. Sólo se usa en la
+ * pantalla de gracias y en la de error de envío: antes del formulario no hay
+ * ningún enlace que saque de la página.
  */
-export const WHATSAPP_DEFAULT = [
-  'Hola, he visto vuestro anuncio y me gustaría saber cuánto le puedo sacar a mi coche:',
-  '',
-  '- Marca/Modelo: ',
-  '- Motor: ',
-  '- Potencia de serie: ',
-].join('\n');
-
-/** Construye un enlace de WhatsApp con el mensaje ya escrito. */
-export function waLink(mensaje: string = WHATSAPP_DEFAULT): string {
+export function waLink(mensaje: string): string {
   return `https://wa.me/${SITE.phoneRaw}?text=${encodeURIComponent(mensaje)}`;
 }
 
-export const TEL_LINK = `tel:+${SITE.phoneRaw}`;
-
 /**
  * Apps Script que recibe los leads y los escribe en la hoja de cálculo.
- * Se llama con `mode: 'no-cors'` y `URLSearchParams`, nunca con JSON:
- * Apps Script lee `e.parameter` y así no hay preflight ni CORS.
+ * Lo llama /api/lead/ desde el servidor, con `URLSearchParams` (Apps Script lee
+ * `e.parameter`). El navegador sólo lo llama directo en el plan B de leads.ts.
  */
 export const SHEETS_WEBHOOK_URL =
   'https://script.google.com/macros/s/AKfycbz8ORocSTJkqaaKDZ7gyc1cyMm_3kHrqVdbSfuIJOXrKAfHbnbZyilC_gw0_IFJlyAy/exec';

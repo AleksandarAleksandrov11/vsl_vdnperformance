@@ -1,7 +1,7 @@
 'use client';
 
 import { type ReactNode } from 'react';
-import { FORM_ID, TEL_LINK, waLink } from '@/lib/config';
+import { FORM_ID } from '@/lib/config';
 import { useCountUp, useInViewOnce } from '@/lib/hooks';
 
 /* ==========================================================================
@@ -222,36 +222,6 @@ export function BotonCalcular({
     <BotonPrincipal href={`#${FORM_ID}`} className={className}>
       {children}
     </BotonPrincipal>
-  );
-}
-
-/** Enlace de WhatsApp. Centraliza el evento Contact. */
-export function EnlaceWhatsapp({
-  children,
-  mensaje,
-  className = '',
-}: {
-  children: ReactNode;
-  mensaje?: string;
-  className?: string;
-}) {
-  return (
-    <a
-      href={waLink(mensaje)}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={className}
-    >
-      {children}
-    </a>
-  );
-}
-
-export function EnlaceTelefono({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return (
-    <a href={TEL_LINK} className={className}>
-      {children}
-    </a>
   );
 }
 

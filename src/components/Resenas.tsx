@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { SITE } from '@/lib/config';
 import { RESENAS } from '@/lib/content';
 import { Estrellas, Eyebrow, H2_CLASS, Reveal, Section, Titular } from './kit';
 
@@ -118,16 +117,6 @@ export function Resenas() {
         </ul>
       </div>
 
-      <div className="shell mt-10">
-        <a
-          href={SITE.googleReviews}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-[0.9375rem] text-ink-dark underline decoration-black/20 underline-offset-[6px] transition-colors duration-300 hover:decoration-black/60"
-        >
-          Ver todas en Google
-        </a>
-      </div>
     </Section>
   );
 }
