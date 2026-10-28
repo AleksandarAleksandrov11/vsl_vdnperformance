@@ -756,11 +756,16 @@ function PantallaFinal({ datos, onOtro }: { datos: Datos; onOtro: () => void }) 
      redirige: sólo queda el botón. */
   useEffect(() => {
     if (!esTactil()) return;
+    /* El Contact sale 300 ms antes de navegar: si saliera a la vez, la
+       navegación cortaría la petición del píxel. */
+    const aviso = setTimeout(() => trackContact('gracias-auto'), 1200);
     const t = setTimeout(() => {
-      trackContact('gracias-auto');
       window.location.href = enlace;
     }, 1500);
-    return () => clearTimeout(t);
+    return () => {
+      clearTimeout(aviso);
+      clearTimeout(t);
+    };
   }, [enlace]);
 
   return (

@@ -34,8 +34,10 @@ test('móvil: tras enviar se abre WhatsApp solo, con el coche, y no antes de 800
   const lead = eventosDe(eventos, 'Lead')[0];
   expect(lead, 'el Lead sale antes').toBeTruthy();
   expect(navegaEn - lead.t).toBeGreaterThanOrEqual(800);
-  const contacto = eventosDe(eventos, 'Contact').map((e) => e.args[2]);
-  expect(contacto).toEqual([{ content_category: 'gracias-auto' }]);
+  const contacto = eventosDe(eventos, 'Contact');
+  expect(contacto.map((e) => e.args[2])).toEqual([{ content_category: 'gracias-auto' }]);
+  // Sale antes de navegar, para que la navegación no corte la petición del píxel.
+  expect(navegaEn - contacto[0].t).toBeGreaterThanOrEqual(200);
 });
 
 test('escritorio: no redirige, sólo el botón, que mide gracias-boton', async ({ page, eventos, isMobile, context }) => {

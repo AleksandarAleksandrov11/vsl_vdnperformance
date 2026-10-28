@@ -56,6 +56,10 @@ test('Lead una sola vez aunque se pulse Enter varias veces, sin valor ni moneda'
   const init = eventos.filter((e) => e.args[0] === 'init' && e.args[2]);
   expect(init.at(-1)?.args[2]).toEqual({ ph: '34611223344', fn: 'laura', country: 'es' });
 
+  // El píxel no manda PageView por su cuenta al cambiar la URL (#presupuesto).
+  expect(await page.evaluate(() => (window as unknown as { fbq: { disablePushState?: boolean } }).fbq.disablePushState)).toBe(true);
+  expect(eventosDe(eventos, 'PageView')).toHaveLength(1);
+
   // Embudo: ViewContent, FormStart y un FormStep por paso.
   expect(eventosDe(eventos, 'ViewContent')).toHaveLength(1);
   expect(eventosDe(eventos, 'FormStart')).toHaveLength(1);

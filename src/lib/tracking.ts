@@ -36,6 +36,7 @@ interface Fbq {
   push: Fbq;
   loaded: boolean;
   version: string;
+  disablePushState?: boolean;
 }
 
 declare global {
@@ -112,6 +113,9 @@ function injectPixel(): void {
   n.loaded = true;
   n.version = '2.0';
   n.push = n;
+  /* Sin esto, el píxel manda otro PageView cada vez que cambia la URL, y
+     cada botón "Calcular" (un enlace a #presupuesto) la cambia. */
+  n.disablePushState = true;
   f.fbq = n;
   f._fbq = n;
 
