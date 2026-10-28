@@ -24,6 +24,10 @@
  *                       como fb.1.<ms del primer clic>.<fbclid> (sin hashear)
  *   custom_data ....... content_name. Sin valor ni moneda.
  *
+ * Además, /api/evento/ manda PageView y ViewContent de todas las visitas
+ * (eventoNavegacion): sólo IP, navegador, fbp, fbc y la URL, con el mismo
+ * event_id que el píxel.
+ *
  * Nada más: ni el coche ni los UTM. No hay email en el formulario, así que no
  * se manda; si algún día lo hay, va en `em` también hasheado.
  *
@@ -116,16 +120,64 @@ export function eventoLead(d: DatosLeadCapi, ahora = Date.now()) {
   };
 }
 
+/* ------------------------------------------------------------------ *
+ * Visitas: PageView y ViewContent por servidor (/api/evento/)
+ * ------------------------------------------------------------------ */
+
+/** Los únicos eventos que acepta /api/evento/. */
+export const EVENTOS_NAVEGACION = ['PageView', 'ViewContent'] as const;
+export type EventoNavegacion = (typeof EVENTOS_NAVEGACION)[number];
+
+export type DatosNavegacionCapi = {
+  nombre: EventoNavegacion;
+  eventId: string;
+  url: string;
+  userAgent: string;
+  ip?: string;
+  fbp?: string;
+  fbc?: string;
+  fbclid?: string;
+  fbclidTs?: number;
+};
+
 /**
- * Manda el Lead a Meta. Nunca lanza: si Meta falla, el presupuesto ya está en
- * la hoja; sólo se deja constancia en el log de Vercel.
+ * PageView o ViewContent tal cual se manda. Sin datos del formulario: sólo
+ * IP, navegador, fbp y fbc, para que Meta case la visita con el clic.
  */
-export async function enviarLeadCapi(d: DatosLeadCapi): Promise<void> {
+export function eventoNavegacion(d: DatosNavegacionCapi, ahora = Date.now()) {
+  const user_data: Record<string, unknown> = { client_user_agent: d.userAgent.slice(0, 512) };
+  if (d.ip) user_data.client_ip_address = d.ip;
+  if (d.fbp) user_data.fbp = d.fbp;
+  const fbc = fbcDe(d, ahora);
+  if (fbc) user_data.fbc = fbc;
+  return {
+    event_name: d.nombre,
+    event_time: Math.floor(ahora / 1000),
+    event_id: d.eventId,
+    action_source: 'website',
+    event_source_url: d.url,
+    user_data,
+    ...(d.nombre === 'ViewContent' ? { custom_data: { content_name: 'Calculadora' } } : {}),
+  };
+}
+
+/* ------------------------------------------------------------------ *
+ * Envío
+ * ------------------------------------------------------------------ */
+
+/** true si hay token: sin él no se llama nunca a Meta. */
+export const capiActiva = () => Boolean(process.env.META_CAPI_TOKEN);
+
+/**
+ * Manda un evento a la API de Conversiones. Nunca lanza: si Meta falla, sólo
+ * queda constancia en el log de Vercel. Sin META_CAPI_TOKEN no hace nada.
+ */
+export async function enviarCapi(evento: { event_name: string }): Promise<void> {
   const token = process.env.META_CAPI_TOKEN;
   if (!token) return;
 
   const base = process.env.META_GRAPH_URL || 'https://graph.facebook.com/v23.0';
-  const cuerpo: Record<string, unknown> = { data: [eventoLead(d)] };
+  const cuerpo: Record<string, unknown> = { data: [evento] };
   if (process.env.META_TEST_EVENT_CODE) cuerpo.test_event_code = process.env.META_TEST_EVENT_CODE;
 
   try {
@@ -138,9 +190,14 @@ export async function enviarLeadCapi(d: DatosLeadCapi): Promise<void> {
     /* console.error y no console.log: en producción el compilador quita todos
        los console menos error, y así queda en los logs de Vercel si Meta lo
        aceptó o no. */
-    if (!r.ok) console.error('CAPI', r.status, (await r.text()).slice(0, 300));
-    else console.error('CAPI ok', r.status);
+    if (!r.ok) console.error('CAPI', evento.event_name, r.status, (await r.text()).slice(0, 300));
+    else console.error('CAPI ok', evento.event_name, r.status);
   } catch (e) {
-    console.error('CAPI', e instanceof Error ? e.message : e);
+    console.error('CAPI', evento.event_name, e instanceof Error ? e.message : e);
   }
+}
+
+/** El Lead del formulario (lo llama /api/lead/). */
+export async function enviarLeadCapi(d: DatosLeadCapi): Promise<void> {
+  await enviarCapi(eventoLead(d));
 }

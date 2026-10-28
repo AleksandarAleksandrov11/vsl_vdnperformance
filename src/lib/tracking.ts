@@ -7,9 +7,11 @@
  * manda /api/lead/ para todos los leads, con o sin consentimiento.
  *
  * Eventos del píxel:
- *   Carga de página, o al aceptar ......... PageView
- *   Contesta la primera pregunta ........... ViewContent { content_name: 'Calculadora' }
- *                                            (se encola sin consentimiento, como siempre)
+ *   Carga de página, o al aceptar ......... PageView, con eventID
+ *   Contesta la primera pregunta ........... ViewContent { content_name: 'Calculadora' }, con
+ *                                            eventID (se encola sin consentimiento)
+ *   PageView y ViewContent también van por servidor (/api/evento/) con el mismo
+ *   event_id, para todas las visitas; Meta junta los dos caminos.
  *   Contesta la primera pregunta ........... FormStart, una vez por sesión
  *   Completa cada paso ..................... FormStep { step }, una vez por paso
  *   Error de validación .................... FormError { step, field }
@@ -48,6 +50,8 @@ declare global {
 
 let pixelInjected = false;
 let pageViewSent = false;
+/** event_id del PageView de esta carga: el mismo para el píxel y el servidor. */
+let pageViewId: string | null = null;
 
 /** Datos de coincidencia avanzada para el init del píxel, ya normalizados. */
 export type UsuarioPixel = { ph: string; fn?: string; country: string };
@@ -182,6 +186,40 @@ export function datosMedicion(): { consent_marketing: boolean; fbp?: string; fbc
 }
 
 /* ------------------------------------------------------------------ *
+ * Visitas por servidor (/api/evento/)
+ * ------------------------------------------------------------------ */
+
+/**
+ * Manda PageView o ViewContent a /api/evento/, que lo pasa a la API de
+ * Conversiones con el mismo event_id que usa el píxel. Sale haya o no
+ * consentimiento (el píxel sólo ve a quien acepta) y sin escribir cookies:
+ * sólo lee _fbc y _fbp si ya existen y el fbclid de sessionStorage.
+ * Con sendBeacon (o fetch con keepalive): nunca bloquea nada ni espera
+ * respuesta.
+ */
+function enviarAlServidor(nombre: 'PageView' | 'ViewContent', eventId: string): void {
+  if (typeof window === 'undefined') return;
+  const clic = leerClic();
+  const cuerpo = JSON.stringify({
+    event_name: nombre,
+    event_id: eventId,
+    event_source_url: `${window.location.origin}${window.location.pathname}`,
+    fbc: leerCookie('_fbc') ?? '',
+    fbp: leerCookie('_fbp') ?? '',
+    fbclid: clic?.fbclid ?? '',
+    fbclid_ts: clic ? String(clic.ts) : '',
+  });
+  try {
+    if (navigator.sendBeacon?.('/api/evento/', cuerpo)) return;
+  } catch {
+    /* sin sendBeacon: fetch */
+  }
+  fetch('/api/evento/', { method: 'POST', body: cuerpo, keepalive: true, headers: { 'content-type': 'text/plain' } }).catch(
+    () => {},
+  );
+}
+
+/* ------------------------------------------------------------------ *
  * Envío
  * ------------------------------------------------------------------ */
 
@@ -236,6 +274,13 @@ export function initTracking(): () => void {
   if (typeof window === 'undefined') return () => {};
   capturarUtm();
   for (const id of leerLista(LEADS_KEY)) leadsMedidos.add(id);
+
+  /* PageView de esta carga: al servidor ya, y al píxel con el mismo event_id
+     ahora (si hay consentimiento) o cuando la persona acepte. */
+  if (!pageViewId) {
+    pageViewId = nuevoEventId();
+    enviarAlServidor('PageView', pageViewId);
+  }
   for (const p of leerLista(PASOS_KEY)) pasosMedidos.add(p);
 
   const start = () => {
@@ -244,7 +289,7 @@ export function initTracking(): () => void {
     injectPixel();
     if (!pageViewSent) {
       pageViewSent = true;
-      send({ kind: 'track', name: 'PageView' });
+      send({ kind: 'track', name: 'PageView', opts: { eventID: pageViewId } });
     }
     flushPending();
   };
@@ -261,7 +306,10 @@ export function initTracking(): () => void {
 
 /** El usuario contesta la primera pregunta: empieza la calculadora. */
 export function trackFormStart(): void {
-  emit({ kind: 'track', name: 'ViewContent', params: { content_name: 'Calculadora' } });
+  // Mismo event_id en el píxel (ahora o, si acepta luego, desde la cola) y en el servidor.
+  const id = nuevoEventId();
+  enviarAlServidor('ViewContent', id);
+  emit({ kind: 'track', name: 'ViewContent', params: { content_name: 'Calculadora' }, opts: { eventID: id } });
   if (leerLista(FORMSTART_KEY).length) return;
   if (emitSiCargado({ kind: 'trackCustom', name: 'FormStart' })) anadirALista(FORMSTART_KEY, '1');
 }
