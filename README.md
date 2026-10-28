@@ -4,7 +4,14 @@ Landing de captación para **VDN Performance** (reprogramación de centralitas,
 Collado Villalba). El 90 % del tráfico llega de anuncios de Instagram en móvil,
 así que está diseñada primero para móvil.
 
-Un único objetivo: que la persona rellene el formulario o escriba por WhatsApp.
+Un único objetivo: que la persona rellene el formulario. Antes del formulario no
+hay ningún enlace que saque de la página (ni WhatsApp, ni teléfono, ni redes); al
+enviarlo, en el móvil se abre WhatsApp con los datos de su coche.
+
+> **El Apps Script y la hoja de Google no se han tocado.** Ni su código
+> publicado, ni las columnas, ni los despliegues, ni `docs/apps-script.gs`. La web
+> les manda exactamente el mismo cuerpo de siempre, y una prueba
+> (`tests/fixtures/payload-hoja.json`) falla si cambia un solo byte.
 
 - **Stack:** Next.js 16 (App Router) · TypeScript · Tailwind CSS 4 · Framer Motion
 - **Salida:** páginas prerenderizadas (estáticas, servidas desde la CDN de Vercel)
@@ -20,7 +27,17 @@ npm install
 npm run dev        # http://localhost:3000
 npm run build      # genera .next/ (npm start lo sirve en :3000)
 npm start          # sirve el build en local, tal cual se verá en producción
+npm run lint       # ESLint con las reglas de Next.js
+npm run typecheck  # TypeScript sin emitir
+npm test           # Playwright: compila, levanta la web y pasa toda la suite
 ```
+
+`npm test` usa el Chromium que instala Playwright (`npx playwright install
+chromium`); con otro, `CHROMIUM_PATH=/ruta/al/chrome npm test`. Levanta su propio
+simulador de la hoja y de Meta (`tests/support/simulador.mjs`): **ninguna prueba
+escribe en la hoja real ni manda eventos a Meta.** En el navegador están siempre
+interceptados `script.google.com`, `graph.facebook.com`, `connect.facebook.net`
+y `wa.me`.
 
 | Comando | Qué hace |
 |---|---|
@@ -33,8 +50,8 @@ npm start          # sirve el build en local, tal cual se verá en producción
 | `node scripts/test-motion.mjs <url>` | Comprueba `prefers-reduced-motion` |
 | `python3 scripts/build_brand.py` | Regenera logo, favicons, iconos y la imagen Open Graph |
 
-Los scripts de prueba necesitan un servidor levantado (`npm start`) y usan el
-Chromium del sistema; con otra ruta, `CHROMIUM_PATH=/ruta/al/chrome`.
+Los scripts de `scripts/` necesitan un servidor levantado (`npm start`, puerto
+3000) y usan el Chromium de Playwright; con otro, `CHROMIUM_PATH=/ruta/al/chrome`.
 
 ---
 
@@ -102,21 +119,42 @@ src/
 
 ## Formulario y leads
 
-Cinco pantallas, una pregunta en cada una. Al enviar:
+Cinco pantallas, una pregunta en cada una. **Las preguntas no se cambian** (ni
+se añaden, ni se quitan, ni cambian de orden): son las mínimas. Sólo se mejora
+cómo se rellenan. Al enviar:
 
 1. El navegador hace `POST` en JSON a **`/api/lead/`** (`src/app/api/lead/route.ts`).
 2. La función lo reenvía al Apps Script (`SHEETS_WEBHOOK_URL` en `config.ts`)
    con los mismos campos de siempre (`nombre`, `telefono`, `modelo`, `anio`,
-   `motor`, `potencia`, `objetivo`, `utm_*`, `event_id`, `website`) y **lee su
-   respuesta**. Desde el navegador eso era imposible: con `no-cors` la respuesta
-   de Google llega opaca.
-3. Si la hoja contesta `{"ok":true}`, la web enseña la pantalla final y dispara
-   el `Lead` del píxel. Si no hay red, se corta (25 s) o la hoja falla, sale un
-   aviso en el formulario, no se mide nada y lo rellenado sigue ahí para volver
-   a enviarlo.
-4. Plan B: si algún despliegue saliera sin la función (404), se manda directo
-   al Apps Script como antes. Se enseña la pantalla final, pero sin `Lead`,
-   porque no hay forma de confirmar que se guardó.
+   `motor`, `potencia`, `event_id`, `utm_*`, `objetivo`, `website`), en el mismo
+   orden y formato, y **lee su respuesta**. Lo que el navegador manda para la
+   CAPI (`fbclid`, `fbc`, `fbp`, `event_source_url`, `consent_marketing`) no se
+   reenvía nunca a la hoja.
+3. Si la hoja contesta `{"ok":true}`, sale el `Lead` del píxel y la pantalla de
+   gracias. En el móvil, a los 1,5 s se abre WhatsApp solo (con
+   `location.href`, no `window.open`, que se bloquea en iOS y en Instagram) con
+   un mensaje como «Hola, soy Laura. Mi coche: Seat León, 2015, 2.0 TDI, 150 CV.».
+   En escritorio no se redirige: queda el botón «Abrir WhatsApp».
+4. Si no hay red, se corta (25 s) o la hoja falla: aviso, lo rellenado sigue
+   ahí para reintentar (con el mismo `event_id`) y un botón «Enviar por
+   WhatsApp» con todos los datos. No se mide `Lead`.
+5. Plan B: si algún despliegue saliera sin la función (404), se manda directo
+   al Apps Script como antes, sin `Lead` porque no se puede confirmar.
+
+**Teléfono.** Delante del campo hay un selector de prefijo, +34 por defecto, con
+los países más habituales y «Otro». Con +34 se valida y se guarda exactamente
+como siempre (9 dígitos). Con otro prefijo, de 6 a 14 cifras, y va a la hoja en
+el mismo campo `telefono` con el prefijo delante (`+351912345678`). Si se pega
+un número con `+` o `00`, el prefijo pasa al selector y no se duplica.
+
+**Progreso.** Lo contestado se guarda en `sessionStorage`: si la persona abre una
+legal (siempre en pestaña nueva), recarga o el navegador de Instagram restaura la
+página, el formulario sigue donde estaba.
+
+**UTM y fbclid.** Se guardan en `sessionStorage` en cuanto llega la visita,
+desde un script en línea del `<head>` (antes de que cargue React) y otra vez al
+hidratar. Unos UTM buenos nunca se sobrescriben con vacíos. Llegan a la hoja en
+los mismos campos `utm_*` de siempre aunque se recargue o se pase por una legal.
 
 ### Por qué se manda `objetivo` además de `potencia`
 
@@ -125,8 +163,8 @@ serie» leyendo un campo llamado `objetivo`, no `potencia`, así que se mandan
 los dos nombres y el script usa el que conozca. Se comprobó enviando ambos
 valores por separado y mirando en cuál caía la celda.
 
-Si algún día se despliega el script de `docs/apps-script.gs` —que busca cada
-valor por el nombre de la cabecera y espera `potencia`— seguirá funcionando
+Si algún día se despliega el script de `docs/apps-script.gs` (que busca cada
+valor por el nombre de la cabecera y espera `potencia`) seguirá funcionando
 igual: el campo que no use lo ignora. Cuando eso pase se puede quitar el alias
 de `enviarLead`, en `src/lib/leads.ts`.
 
@@ -140,32 +178,54 @@ lo cuenta una sola vez.
 
 ## Medición
 
-Todo pasa por `src/lib/tracking.ts`. **El píxel de Meta no se carga hasta que el
-usuario acepta las cookies de marketing.** Si acepta más tarde, se carga en ese
-momento y se envían los eventos que hubieran quedado en cola.
+Todo lo del navegador pasa por `src/lib/tracking.ts`. **El píxel de Meta no se
+carga hasta que el usuario acepta las cookies de marketing** (`consent.ts` no ha
+cambiado). El `Lead` de servidor (CAPI) sale para todos los leads, con o sin
+consentimiento.
 
 | Momento | Evento | Parámetros |
 |---|---|---|
-| Carga de la página, o justo al aceptar (sin recargar) | `PageView` | — |
+| Carga de la página, o justo al aceptar (sin recargar) | `PageView` | |
 | Completa la primera pregunta | `ViewContent` | `content_name: "Calculadora"` |
-| Lo mismo (se mantiene por compatibilidad) | `FormStart` (personalizado) | — |
-| Clic en cualquier enlace `wa.me` o `tel:` de cualquier página | `Contact` | `content_category: whatsapp \| telefono` |
-| La hoja confirma que guardó el presupuesto | `Lead` | `content_name`, `value: 219`, `currency: EUR`, `eventID` |
+| Lo mismo, una vez por sesión | `FormStart` (personalizado) | |
+| Completa cada paso, una vez por paso | `FormStep` (personalizado) | `step` |
+| Error de validación | `FormError` (personalizado) | `step`, `field` |
+| La hoja confirma el presupuesto | `Lead` | `content_name`, `eventID`. Sin valor ni moneda |
+| WhatsApp tras enviar | `Contact` | `content_category`: `gracias-auto`, `gracias-boton` o `error-envio` |
 
-`Contact` se mide con un único listener en `initTracking`, no botón a botón:
-cualquier enlace nuevo de WhatsApp o teléfono queda medido sin tocar nada.
+Los tres `Form*` sólo salen con el píxel cargado: sin consentimiento no se
+encolan. El `Lead` sale **una sola vez por `event_id`** (se recuerda en memoria
+y en `sessionStorage`): ni un doble Enter ni aceptar las cookies después lo
+duplican. Antes del `Lead` se llama a `fbq('init', id, { ph, fn, country })`
+para la coincidencia avanzada.
 
-Con consentimiento, el `fbclid` del anuncio se guarda en la cookie `_fbc`
-(`fb.1.<ms>.<fbclid>`, dominio `.vdnperformance.com`, 90 días). Sin
-consentimiento sólo se guarda en memoria y no se escribe nada.
+`event_id` nace al empezar el formulario (un reintento usa el mismo) y viaja a
+la hoja, al `Lead` del píxel y al de la CAPI: Meta ve el mismo ID por los dos
+caminos y lo cuenta una vez. Si la persona acepta las cookies después de
+enviar, el `Lead` en cola sale con ese mismo `eventID`.
+
+**Cookie `_fbc`.** Sólo con consentimiento, `tracking.ts` guarda el `fbclid` del
+anuncio en `_fbc` (`fb.1.<ms del primer clic>.<fbclid>`, 90 días) en el dominio
+raíz: en producción queda en **`.vdnperformance.com`**, válida para `www` y para
+el dominio sin `www`. Sin consentimiento no se escribe ninguna cookie: el
+`fbclid` va en `sessionStorage` y el servidor construye el `fbc` para la CAPI.
 
 ### API de Conversiones (CAPI)
 
-La manda `/api/lead/` con el `Lead`, **sólo si la persona aceptó marketing** y
-la hoja confirmó el guardado. Qué se envía exactamente está documentado en
-`src/lib/capi.ts`: teléfono, nombre y apellidos en SHA-256, `fbp` y `fbc`, el
-user agent (Meta lo exige en eventos web), la URL y los mismos `content_name`,
-`value` y `currency` que el píxel. Ni la IP, ni el coche, ni los UTM.
+La manda `/api/lead/` con `after()`, cuando la hoja ya ha confirmado el guardado:
+nunca retrasa la respuesta, y si Meta falla el lead ya está guardado. Qué se
+envía exactamente está documentado en `src/lib/capi.ts`:
+
+- `ph` y `external_id`: SHA-256 del teléfono internacional sin `+` ni espacios;
+- `fn` y `ln`: SHA-256 del nombre y los apellidos normalizados;
+- `country`: SHA-256 del país del prefijo (`es` por defecto);
+- `client_ip_address` (primera IP de `x-forwarded-for` o `x-real-ip`) y
+  `client_user_agent`, sin hashear;
+- `fbp` (cookie o cuerpo) y `fbc` (cookie, cuerpo o construido desde el
+  `fbclid`), sin hashear;
+- `custom_data.content_name`. Sin valor ni moneda. Ni el coche ni los UTM.
+
+En los logs de Vercel queda `CAPI ok 200` o el error de Meta.
 
 Variables de entorno en Vercel (**Settings → Environment Variables**):
 
@@ -173,6 +233,36 @@ Variables de entorno en Vercel (**Settings → Environment Variables**):
 |---|---|
 | `META_CAPI_TOKEN` | Token de acceso de la API de Conversiones (Administrador de eventos → píxel → Configuración → Generar token). **Sin él, la CAPI no se manda** y todo lo demás funciona igual. |
 | `META_TEST_EVENT_CODE` | Opcional. El código de "Probar eventos" para ver los Lead de prueba en el Administrador de eventos. Quitarlo después. |
+
+## Hero según el anuncio
+
+`src/lib/ad-variants.ts`. Un script en línea del `<head>` lee `utm_content` (o,
+si no hay, `utm_campaign`), lo normaliza (`TOFU1.0` -> `tofu1`), lo guarda en
+`sessionStorage` y marca `<html>` con `data-ad` y `data-campaign` antes del
+primer pintado:
+
+- **Cerrar** (`utm_campaign` con «cerrar», o `utm_content` con `mofu`/`bofu`):
+  «Presupuesto gratis» / «¿Cuánto gana tu coche?» / «Stage 1 desde 219 €. Te
+  damos tu precio por WhatsApp.».
+- **Descubrir** (`descubrir`, `tofu`) y sin UTM: el hero de siempre.
+- `utm_content` manda sobre `utm_campaign`. `POR_ANUNCIO` está preparado para
+  variantes por anuncio concreto (vacío por ahora).
+
+Todas las variantes van en el HTML y el CSS enseña la buena: sin parpadeo y con
+CLS 0. Cada titular ocupa dos líneas a 390 px, como el de por defecto (es el
+elemento LCP). El botón principal es el mismo en todas.
+
+## Rendimiento
+
+Lighthouse móvil en local (Slow 4G simulada, mediana de 3 pasadas alternas):
+
+| | Rendimiento | FCP | LCP | TBT | CLS |
+|---|---|---|---|---|---|
+| Antes (main 1e53738) | 0,94 | 932 ms | 3034 ms | 102 ms | 0 |
+| Después | 0,94 | 911 ms | 3032 ms | 86 ms | 0 |
+
+JS de la primera carga: 176,6 KB gzip antes, 174,7 KB después. La fuente va
+en el repo (`src/app/fonts`, `next/font/local`): el build no descarga nada.
 
 ---
 
@@ -205,9 +295,11 @@ cambia ahí**: si no, los enlaces compartidos salen sin imagen.
 
 - **Instagram Ads:** usa la URL con parámetros, por ejemplo
   `https://www.vdnperformance.com/?utm_source=instagram&utm_campaign=stage1&utm_content=reel-e46`.
-- **Píxel:** en el Administrador de eventos de Meta, comprueba que llegan
-  `PageView`, `FormStart`, `Contact` y `Lead`. Recuerda **aceptar las cookies**
-  al probarlo: sin consentimiento el píxel no se carga, y eso es lo correcto.
+- **Píxel y CAPI:** en el Administrador de eventos de Meta, comprueba que llegan
+  `PageView`, `ViewContent`, `FormStart`, `FormStep`, `Contact` y `Lead`, y que
+  el `Lead` de navegador y el de servidor se deduplican. Para ver los eventos
+  del navegador hay que **aceptar las cookies**; el `Lead` de servidor llega
+  igual sin aceptarlas.
 
 ---
 
