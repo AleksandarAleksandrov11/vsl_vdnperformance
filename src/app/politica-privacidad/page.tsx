@@ -130,12 +130,15 @@ export default function PoliticaPrivacidad() {
             marketing. En este tratamiento Meta y el titular actúan como corresponsables respecto
             de la recogida y transmisión de los datos.
             {/* TODO (legal): revisar Aleks. Párrafo neutro sobre la API de
-                Conversiones; falta indicar la base legal de este envío. */}
+                Conversiones (leads y visitas, con o sin consentimiento de cookies);
+                falta indicar la base legal de estos envíos. */}
             <br />
             Además, cuando envías el formulario, los datos de tu solicitud (teléfono y nombre
             cifrados, dirección IP, datos del navegador e identificadores del clic en el anuncio) se
             comunican a Meta Platforms Ireland Limited mediante su API de Conversiones para medir los
-            anuncios.
+            anuncios. En cada visita también se le comunican la dirección IP, los datos del
+            navegador y el identificador del clic en el anuncio, para medir las visitas que llegan
+            desde los anuncios.
           </li>
           <li>
             <strong>Vercel Inc.</strong> — alojamiento del sitio web.

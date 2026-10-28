@@ -135,9 +135,24 @@ cómo se rellenan. Al enviar:
    `location.href`, no `window.open`, que se bloquea en iOS y en Instagram) con
    un mensaje como «Hola, soy Laura. Mi coche: Seat León, 2015, 2.0 TDI, 150 CV.».
    En escritorio no se redirige: queda el botón «Abrir WhatsApp».
-4. Si no hay red, se corta (25 s) o la hoja falla: aviso, lo rellenado sigue
-   ahí para reintentar (con el mismo `event_id`) y un botón «Enviar por
-   WhatsApp» con todos los datos. No se mide `Lead`.
+4. Si no hay red, se corta o la hoja falla: aviso, lo rellenado sigue ahí
+   para reintentar (con el mismo `event_id`) y un botón «Enviar por WhatsApp»
+   con todos los datos. No se mide `Lead`.
+
+**Cuándo se da por guardado** (`guardarEnHoja`, en `route.ts`). Al Apps Script
+se le esperan hasta **30 s** (el navegador espera 35 s, y la función tiene
+`maxDuration` de 60 s para que Vercel no la corte antes):
+
+| Respuesta del Apps Script | Resultado |
+|---|---|
+| 2xx con `{"ok":true}` | guardado |
+| 2xx con algo que no es JSON | **guardado** (a veces contesta una página y la fila ya está escrita), y queda en el log |
+| 2xx con JSON sin `ok: true` | no guardado |
+| 4xx o 5xx, error de red, más de 30 s | no guardado |
+
+Cada caso raro queda en los logs de Vercel con su motivo (`Hoja: ...`: tiempo
+agotado, estado HTTP o los primeros 200 caracteres de la respuesta), sin datos
+personales.
 5. Plan B: si algún despliegue saliera sin la función (404), se manda directo
    al Apps Script como antes, sin `Lead` porque no se puede confirmar.
 
@@ -192,6 +207,18 @@ consentimiento.
 | Error de validación | `FormError` (personalizado) | `step`, `field` |
 | La hoja confirma el presupuesto | `Lead` | `content_name`, `eventID`. Sin valor ni moneda |
 | WhatsApp tras enviar | `Contact` | `content_category`: `gracias-auto`, `gracias-boton` o `error-envio` |
+
+**Visitas por servidor.** El píxel sólo ve a quien acepta las cookies. Para que
+Meta vea todas las visitas, `PageView` (al cargar) y `ViewContent` (al
+contestar la primera pregunta) también van por la API de Conversiones a través
+de **`/api/evento/`** (`src/app/api/evento/route.ts`), con el mismo `event_id`
+que el píxel: si el píxel está cargado, Meta junta los dos; si la persona
+acepta después, el `PageView` del píxel sale con el `event_id` ya enviado. El
+navegador lo manda con `sendBeacon` (o `fetch` con `keepalive`), sin esperar
+respuesta. La ruta sólo acepta el propio origen y esos dos eventos, ignora los
+bots evidentes, manda IP, user agent, `fbp` y `fbc` (de la cookie o construido
+desde el `fbclid` guardado al aterrizar) y responde siempre 204. Sin
+`META_CAPI_TOKEN` no hace nada.
 
 Los tres `Form*` sólo salen con el píxel cargado: sin consentimiento no se
 encolan. El `Lead` sale **una sola vez por `event_id`** (se recuerda en memoria
@@ -259,7 +286,11 @@ Lighthouse móvil en local (Slow 4G simulada, mediana de 3 pasadas alternas):
 | | Rendimiento | FCP | LCP | TBT | CLS |
 |---|---|---|---|---|---|
 | Antes (main 1e53738) | 0,94 | 932 ms | 3034 ms | 102 ms | 0 |
-| Después | 0,94 | 911 ms | 3032 ms | 86 ms | 0 |
+| Con fugas cerradas y CAPI (082bced) | 0,93 | 915 ms | 3117 ms | 68 ms | 0 |
+| Con visitas por servidor | 0,97 | 914 ms | 2452 ms | 55 ms | 0 |
+
+(Las dos últimas filas, medidas juntas y alternas; el LCP simulado varía bastante
+de una pasada a otra.)
 
 JS de la primera carga: 176,6 KB gzip antes, 174,7 KB después. La fuente va
 en el repo (`src/app/fonts`, `next/font/local`): el build no descarga nada.

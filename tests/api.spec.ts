@@ -14,11 +14,13 @@ type Recibido = { t: number; url: string; cuerpo: string };
 const registro = async (): Promise<Recibido[]> => (await fetch(`${SIMULADOR}/__registro`)).json();
 const limpiar = () => fetch(`${SIMULADOR}/__limpiar`, { method: 'POST' });
 
-/** Espera a que llegue a la Graph API simulada (la CAPI va en after()). */
-async function esperarCapi(ms = 4000): Promise<Recibido | undefined> {
+/** Espera a que llegue a la Graph API simulada un evento (la CAPI va en after()). */
+async function esperarCapi(ms = 4000, evento = 'Lead'): Promise<Recibido | undefined> {
   const fin = Date.now() + ms;
   while (Date.now() < fin) {
-    const g = (await registro()).find((r) => r.url.startsWith('/graph/'));
+    const g = (await registro()).find(
+      (r) => r.url.startsWith('/graph/') && JSON.parse(r.cuerpo).data?.[0]?.event_name === evento,
+    );
     if (g) return g;
     await new Promise((r) => setTimeout(r, 150));
   }
@@ -135,14 +137,48 @@ test.describe('/api/lead/', () => {
     expect((await registro()).filter((x) => x.url.startsWith('/exec'))).toHaveLength(1);
   });
 
-  test('si la hoja falla: 502 y sin CAPI', async ({ request }) => {
+  test('hoja caída (5xx): 502 y sin CAPI', async ({ request }) => {
     const r = await request.post('http://localhost:3000/api/lead/', {
-      data: cuerpoNavegador({ nombre: 'Fallo Prueba' }),
+      data: cuerpoNavegador({ nombre: 'Caida Prueba' }),
       headers: { 'user-agent': UA },
     });
     expect(r.status()).toBe(502);
     expect(await r.json()).toEqual({ ok: false });
     expect(await esperarCapi(2000)).toBeUndefined();
+  });
+
+  test('hoja con JSON sin ok:true: 502 y sin CAPI', async ({ request }) => {
+    const r = await request.post('http://localhost:3000/api/lead/', {
+      data: cuerpoNavegador({ nombre: 'OkNo Prueba' }),
+      headers: { 'user-agent': UA },
+    });
+    expect(r.status()).toBe(502);
+    expect(await esperarCapi(2000)).toBeUndefined();
+  });
+
+  test('hoja que responde 2xx pero no JSON: se da por guardado y sale la CAPI', async ({ request }) => {
+    const r = await request.post('http://localhost:3000/api/lead/', {
+      data: cuerpoNavegador({ nombre: 'NoJson Prueba', event_id: 'evt-nojson' }),
+      headers: { 'user-agent': UA },
+    });
+    expect(r.status()).toBe(200);
+    expect(await r.json()).toEqual({ ok: true });
+    const capi = await esperarCapi();
+    expect(JSON.parse(capi!.cuerpo).data[0].event_id).toBe('evt-nojson');
+  });
+
+  test('hoja lenta (25 s): se espera y se da por guardado', async ({ request }) => {
+    test.setTimeout(60_000);
+    const t0 = Date.now();
+    const r = await request.post('http://localhost:3000/api/lead/', {
+      data: cuerpoNavegador({ nombre: 'Lenta Prueba', event_id: 'evt-lenta' }),
+      headers: { 'user-agent': UA },
+      timeout: 40_000,
+    });
+    expect(Date.now() - t0).toBeGreaterThanOrEqual(24_000);
+    expect(r.status()).toBe(200);
+    expect(await r.json()).toEqual({ ok: true });
+    expect(JSON.parse((await esperarCapi())!.cuerpo).data[0].event_id).toBe('evt-lenta');
   });
 
   test('teléfono extranjero: va a la hoja con su prefijo, en el mismo campo', async ({ request }) => {
@@ -162,6 +198,76 @@ test.describe('/api/lead/', () => {
     expect(malo.status()).toBe(400);
     const bot = await request.post('http://localhost:3000/api/lead/', { data: cuerpoNavegador({ website: 'http://spam' }) });
     expect(await bot.json()).toEqual({ ok: true });
+    expect(await registro()).toHaveLength(0);
+  });
+});
+
+test.describe('/api/evento/', () => {
+  test.beforeEach(async () => {
+    await limpiar();
+  });
+
+  const visita = (extra: Record<string, unknown> = {}) =>
+    JSON.stringify({
+      event_name: 'PageView',
+      event_id: 'pv-1',
+      event_source_url: 'http://localhost:3000/?utm_source=meta',
+      fbc: '',
+      fbp: 'fb.1.1760000000000.555',
+      fbclid: 'PRUEBA123',
+      fbclid_ts: '1760000000000',
+      ...extra,
+    });
+  const cabeceras = { origin: 'http://localhost:3000', 'user-agent': UA, 'content-type': 'text/plain', 'x-forwarded-for': '203.0.113.9' };
+
+  test('PageView: a la CAPI con event_id, URL, IP, user agent, fbp y fbc construido', async ({ request }) => {
+    const r = await request.post('http://localhost:3000/api/evento/', { data: visita(), headers: cabeceras });
+    expect(r.status()).toBe(204);
+    const ev = JSON.parse((await esperarCapi(4000, 'PageView'))!.cuerpo).data[0];
+    expect(ev).toMatchObject({ event_name: 'PageView', event_id: 'pv-1', action_source: 'website', event_source_url: 'http://localhost:3000/' });
+    expect(ev.user_data).toEqual({
+      client_user_agent: UA,
+      client_ip_address: '203.0.113.9',
+      fbp: 'fb.1.1760000000000.555',
+      fbc: 'fb.1.1760000000000.PRUEBA123',
+    });
+    expect(ev.custom_data).toBeUndefined();
+  });
+
+  test('ViewContent: con content_name "Calculadora"', async ({ request }) => {
+    await request.post('http://localhost:3000/api/evento/', {
+      data: visita({ event_name: 'ViewContent', event_id: 'vc-1' }),
+      headers: cabeceras,
+    });
+    const ev = JSON.parse((await esperarCapi(4000, 'ViewContent'))!.cuerpo).data[0];
+    expect(ev.custom_data).toEqual({ content_name: 'Calculadora' });
+  });
+
+  test('rechaza otro origen, eventos fuera de la lista y bots', async ({ request }) => {
+    const casos = [
+      { data: visita(), headers: { ...cabeceras, origin: 'https://otra-web.com' } },
+      { data: visita(), headers: { ...cabeceras, origin: '' } },
+      { data: visita({ event_name: 'Lead' }), headers: cabeceras },
+      { data: visita({ event_name: 'Purchase' }), headers: cabeceras },
+      { data: visita(), headers: { ...cabeceras, 'user-agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)' } },
+      { data: visita(), headers: { ...cabeceras, 'user-agent': 'facebookexternalhit/1.1' } },
+      { data: 'esto no es json', headers: cabeceras },
+    ];
+    for (const c of casos) {
+      const r = await request.post('http://localhost:3000/api/evento/', c);
+      expect(r.status()).toBe(204);
+    }
+    await new Promise((r) => setTimeout(r, 1500));
+    expect((await registro()).filter((x) => x.url.startsWith('/graph/'))).toHaveLength(0);
+  });
+
+  test('sin token: 204 y no se llama a Meta', async ({ request }) => {
+    const r = await request.post('http://localhost:3001/api/evento/', {
+      data: visita(),
+      headers: { ...cabeceras, origin: 'http://localhost:3001' },
+    });
+    expect(r.status()).toBe(204);
+    await new Promise((r) => setTimeout(r, 1500));
     expect(await registro()).toHaveLength(0);
   });
 });

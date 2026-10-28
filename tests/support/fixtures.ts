@@ -22,14 +22,19 @@ export type EventoFbq = { t: number; args: unknown[] };
 type Fixtures = {
   eventos: EventoFbq[];
   salidas: string[];
+  /** Cuerpos que el navegador manda a /api/evento/ (interceptado). */
+  visitas: Record<string, string>[];
 };
 
 export const test = base.extend<Fixtures>({
   salidas: async ({}, usar) => {
     await usar([]);
   },
+  visitas: async ({}, usar) => {
+    await usar([]);
+  },
   eventos: [
-    async ({ context, salidas }, usar) => {
+    async ({ context, salidas, visitas }, usar) => {
     const eventos: EventoFbq[] = [];
     await context.exposeBinding('__registrarFbq', (_o, json: string) => {
       eventos.push({ t: Date.now(), args: JSON.parse(json) });
@@ -60,6 +65,16 @@ export const test = base.extend<Fixtures>({
     await context.route(/https:\/\/(graph\.facebook\.com|www\.facebook\.com|script\.google\.com)\//, (r) => {
       salidas.push(r.request().url());
       return r.abort();
+    });
+    /* Las visitas por servidor (PageView y ViewContent) se recogen aquí y no
+       llegan al servidor: las prueba api.spec.ts contra el simulador. */
+    await context.route('**/api/evento/', (r) => {
+      try {
+        visitas.push(JSON.parse(r.request().postData() ?? '{}'));
+      } catch {
+        /* cuerpo raro: no se apunta */
+      }
+      return r.fulfill({ status: 204, body: '' });
     });
     await context.route('https://wa.me/**', (r) =>
       r.fulfill({ status: 200, contentType: 'text/html', body: '<p>wa</p>' }),
