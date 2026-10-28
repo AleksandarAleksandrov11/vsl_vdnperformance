@@ -4,14 +4,15 @@
  * Comprueba lo que no se ve en una captura: que el cuentarrevoluciones avanza,
  * que Enter pasa de pregunta, que "No lo sé" guarda el valor correcto, que la
  * validación salta cuando toca, que el envío llega al webhook con los campos
- * exactos (a /api/lead/, interceptado) y que el mensaje de WhatsApp final se arma bien.
+ * exactos (a /api/lead/, interceptado), que el mensaje de WhatsApp se arma bien
+ * y que en móvil WhatsApp se abre solo tras enviar.
  *
  *   node scripts/test-form.mjs [url]
  */
 import { chromium } from 'playwright';
 
-const BASE = process.argv[2] ?? 'http://localhost:4321';
-const CHROMIUM = process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const BASE = process.argv[2] ?? 'http://localhost:3000';
+const CHROMIUM = process.env.CHROMIUM_PATH || undefined;
 
 let fallos = 0;
 const ok = (cond, msg, extra = '') => {
@@ -42,6 +43,11 @@ async function main() {
     await route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
   });
   await page.route('**/script.google.com/**', (route) => route.fulfill({ status: 200, body: '' }));
+  await page.route('**/graph.facebook.com/**', (route) => route.abort());
+  // WhatsApp tampoco sale a internet: basta con ver a dónde se iría.
+  await ctx.route('https://wa.me/**', (route) =>
+    route.fulfill({ status: 200, contentType: 'text/html', body: '<p>wa</p>' }),
+  );
 
   // Lo mismo con el píxel, para poder ver qué eventos se dispararían.
   await page.route('**/connect.facebook.net/**', (route) =>
@@ -136,28 +142,29 @@ async function main() {
   ok(await page.locator('#f-nombre').isVisible(), 'Paso 5 pide nombre y teléfono juntos');
   await page.locator('#f-nombre').fill('Diego');
   await page.locator('#f-telefono').fill('123');
-  await page.getByRole('button', { name: 'Recibir mi precio' }).click();
+  await page.locator('#presupuesto button[type="submit"]').click();
   await page.waitForTimeout(300);
   ok(
     (await page.locator("#presupuesto [role=\"alert\"]").innerText()).includes('9 cifras'),
     'Un teléfono que no es español se rechaza',
   );
 
-  // Con espacios y prefijo +34, como lo escribe mucha gente.
+  // Con espacios y prefijo +34, como lo escribe mucha gente: el +34 pasa al
+  // selector de prefijo y no se duplica.
   await page.locator('#f-telefono').fill('+34 611 22 33 44');
-  // Al enviar no se abre nada: ni pestaña nueva ni WhatsApp en la misma.
-  let ventanas = 0;
-  page.on('popup', () => ventanas++);
-  await page.getByRole('button', { name: 'Recibir mi precio' }).click();
-  await page.waitForTimeout(1400);
-  ok(ventanas === 0, 'Al enviar no se abre WhatsApp ni ninguna ventana');
-  ok(new URL(page.url()).host === new URL(BASE).host, 'La persona se queda en la web', page.url());
+  ok((await page.locator('#f-prefijo').inputValue()) === '34', 'El prefijo pegado pasa al selector');
+  ok(
+    (await page.locator('#presupuesto button[type="submit"]').innerText()).trim() === 'Enviar y abrir WhatsApp',
+    'En móvil el botón dice "Enviar y abrir WhatsApp"',
+  );
+  await page.locator('#presupuesto button[type="submit"]').click();
+  await page.waitForTimeout(600);
 
   /* --- Pantalla final --- */
   const final = await page.locator('text=/Listo, Diego\\./').isVisible();
   ok(final, 'Se muestra la pantalla final con el nombre');
 
-  /* --- Lo que se manda a la hoja --- */
+  /* --- Lo que se manda a /api/lead/ --- */
   ok(!!envio, 'El formulario envía a /api/lead/');
   if (envio) {
     const p = new Map(Object.entries(envio).map(([k, v]) => [k, typeof v === 'string' ? v : JSON.stringify(v)]));
@@ -172,6 +179,7 @@ async function main() {
       utm_campaign: 'stage1-villalba',
       utm_content: 'video-e46',
       website: '',
+      consent_marketing: 'true',
     };
     for (const [k, v] of Object.entries(esperado)) {
       ok(p.get(k) === v, `Campo ${k}`, `"${p.get(k)}"`);
@@ -179,44 +187,40 @@ async function main() {
     ok(/^[0-9a-f-]{20,}$/i.test(p.get('event_id') ?? ''), 'event_id es un UUID', p.get('event_id'));
     const campos = [...Object.keys(envio)].sort().join(',');
     ok(
-      // fbp y fbc sólo van si existen esas cookies (aquí el píxel está simulado y no las crea).
-      campos === 'anio,event_id,marketing,modelo,motor,nombre,potencia,telefono,url,utm_campaign,utm_content,utm_source,website',
-      'No se manda ningún campo de más',
+      campos ===
+        'anio,consent_marketing,event_id,event_source_url,fbc,fbclid,fbclid_ts,fbp,modelo,motor,nombre,potencia,telefono,utm_campaign,utm_content,utm_source,website',
+      'Campos esperados (los de la CAPI no llegan a la hoja: lo comprueba npm test)',
       campos,
     );
   }
 
-  /* --- Mensaje del botón de WhatsApp de la pantalla final --- */
-  // El motor se contestó con "No lo sé": esa línea no aparece.
-  const MENSAJE = [
-    'Hola, soy Diego. Estos son los datos de mi coche:',
-    '',
-    'Marca y modelo: BMW Serie 3',
-    'Año: 2016',
-    'Potencia de serie: 150 CV',
-    '',
-    '¿Cuánto le puedo sacar con una buena repro?',
-  ].join('\n');
-
-  const conversion = await page.evaluate(() =>
-    (window.fbq?.queue ?? []).some((a) => a[0] === 'track' && a[1] === 'Lead'),
+  /* --- Lead y WhatsApp --- */
+  // El motor se contestó con "No lo sé": no aparece en el mensaje.
+  const MENSAJE = 'Hola, soy Diego. Mi coche: BMW Serie 3, 2016, 150 CV.';
+  const leads = await page.evaluate(() =>
+    (window.fbq?.queue ?? []).filter((a) => a[0] === 'track' && a[1] === 'Lead').length,
   );
-  ok(conversion, 'La conversión Lead del píxel se registra');
+  ok(leads === 1, 'La conversión Lead del píxel se registra una vez', String(leads));
 
-  // El de dentro del formulario, no el botón flotante ni el del pie.
-  const wa = await page
-    .locator('#presupuesto a[href*="wa.me"]')
-    .first()
-    .getAttribute('href');
+  const wa = await page.locator('#presupuesto a[href*="wa.me"]').first().getAttribute('href');
   const texto = new URL(wa).searchParams.get('text') ?? '';
-  ok(texto === MENSAJE, 'El botón "Escribir ahora por WhatsApp" lleva el mensaje ordenado', JSON.stringify(texto));
-  ok(!/\p{Extended_Pictographic}/u.test(texto), 'Sin emojis');
+  ok(texto === MENSAJE, 'El botón "Abrir WhatsApp" lleva el mensaje con el coche', JSON.stringify(texto));
+  ok(!/\p{Extended_Pictographic}/u.test(texto) && !texto.includes('\u2014'), 'Sin emojis ni rayas');
 
   await page.screenshot({ path: '/tmp/form-final.png' });
 
-  /* --- Pedir otro presupuesto deja el formulario en blanco --- */
-  await page.getByRole('button', { name: 'Pedir otro presupuesto' }).click();
-  await page.waitForTimeout(700);
+  // En móvil, a los 1,5 s se abre WhatsApp solo.
+  let abre = '';
+  try {
+    await page.waitForURL(/wa\.me/, { timeout: 4000 });
+    abre = page.url();
+  } catch {}
+  ok(abre.startsWith('https://wa.me/34711523484'), 'En móvil WhatsApp se abre solo tras enviar', abre);
+
+  /* --- Al volver, el formulario está en blanco para otro presupuesto --- */
+  await page.goBack();
+  await page.waitForTimeout(800);
+  await page.locator('#presupuesto').scrollIntoViewIfNeeded();
   ok(await page.locator('#f-modelo').isVisible(), 'Se puede empezar otro presupuesto');
   ok((await page.locator('#f-modelo').inputValue()) === '', 'El formulario vuelve en blanco');
 

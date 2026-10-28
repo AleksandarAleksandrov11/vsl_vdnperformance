@@ -11,13 +11,13 @@
 import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
 
-const BASE = process.argv[2] ?? 'http://localhost:4401';
+const BASE = process.argv[2] ?? 'http://localhost:3000';
 const OUT = process.argv[3] ?? '/tmp/secciones';
 const ANCHO = Number(process.argv[4] ?? 390);
 const ALTO = ANCHO < 700 ? 844 : 900;
 
 const browser = await chromium.launch({
-  executablePath: process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  executablePath: process.env.CHROMIUM_PATH || undefined,
 });
 const ctx = await browser.newContext({
   viewport: { width: ANCHO, height: ALTO },

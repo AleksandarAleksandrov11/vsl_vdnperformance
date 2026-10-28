@@ -7,3 +7,8 @@ out/
 next-env.d.ts
 .DS_Store
 scripts/.fonts/
+
+# Pruebas y capturas
+test-results/
+playwright-report/
+capturas/

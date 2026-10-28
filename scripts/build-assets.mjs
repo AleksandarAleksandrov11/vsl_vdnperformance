@@ -1,5 +1,5 @@
 /**
- * build-assets.mjs — pipeline de imágenes de vsl.vdnperformance.es
+ * build-assets.mjs: pipeline de imágenes de www.vdnperformance.com
  * -----------------------------------------------------------------
  * Lee los originales de /assets-src (que NO se despliegan) y escribe en
  * /public/img las variantes AVIF + WebP + JPEG de respaldo que consume <Picture>.

@@ -6,9 +6,9 @@
  */
 import { chromium } from 'playwright';
 
-const BASE = process.argv[2] ?? 'http://localhost:4326';
+const BASE = process.argv[2] ?? 'http://localhost:3000';
 const browser = await chromium.launch({
-  executablePath: process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  executablePath: process.env.CHROMIUM_PATH || undefined,
 });
 
 let fallos = 0;

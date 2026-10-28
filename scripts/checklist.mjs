@@ -12,7 +12,7 @@
  */
 import { chromium } from 'playwright';
 
-const BASE = process.argv[2] ?? 'http://localhost:4405';
+const BASE = process.argv[2] ?? 'http://localhost:3000';
 let fallos = 0;
 const ok = (cond, msg, extra = '') => {
   console.log(`${cond ? '✓' : '✗'} ${msg}${extra ? ' — ' + extra : ''}`);
@@ -20,7 +20,7 @@ const ok = (cond, msg, extra = '') => {
 };
 
 const browser = await chromium.launch({
-  executablePath: process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  executablePath: process.env.CHROMIUM_PATH || undefined,
 });
 
 /* ---------------- Reglas que dependen del ancho ---------------- */

@@ -1,0 +1,27 @@
+{
+  "_nota": "Cuerpo exacto que /api/lead/ manda al Apps Script, capturado con el código anterior a los cambios (main 1e53738). La prueba de contrato falla si cambia un solo byte. {EVENT_ID} se sustituye por el event_id del envío.",
+  "completo": {
+    "entrada": {
+      "url": "/?utm_source=meta&utm_campaign=cerrar&utm_content=prueba",
+      "modelo": "Seat León",
+      "anio": "2015",
+      "motor": "2.0 TDI",
+      "potencia": "150",
+      "nombre": "Laura Gómez",
+      "telefono": "+34 611 22 33 44"
+    },
+    "cuerpo": "nombre=Laura+G%C3%B3mez&telefono=611223344&modelo=Seat+Le%C3%B3n&anio=2015&motor=2.0+TDI&potencia=150&event_id={EVENT_ID}&utm_source=meta&utm_campaign=cerrar&utm_content=prueba&objetivo=150&website="
+  },
+  "nolose": {
+    "entrada": {
+      "url": "/",
+      "modelo": "BMW Serie 3",
+      "anio": "2016",
+      "motor": null,
+      "potencia": null,
+      "nombre": "Diego",
+      "telefono": "611223344"
+    },
+    "cuerpo": "nombre=Diego&telefono=611223344&modelo=BMW+Serie+3&anio=2016&motor=No+lo+sabe&potencia=No+lo+sabe&event_id={EVENT_ID}&utm_source=&utm_campaign=&utm_content=&objetivo=No+lo+sabe&website="
+  }
+}
